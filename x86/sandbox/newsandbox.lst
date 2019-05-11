@@ -1,0 +1,88 @@
+     1                                  section .data
+     2 00000000 303132333435363738-         digit_lut: db "0123456789"
+     3 00000009 39                 
+     4                                      digit_lut_len: equ $ - digit_lut ; let assembler figure out the length of the string (10 bytes obviously)
+     5 0000000A 0A                          newline_char: db 0x0A
+     6                                  
+     7                                  section .bss
+     8                                  section .text
+     9                                  
+    10                                  global _start
+    11                                  
+    12                                  _start:
+    13 00000000 90                          nop ; start NOP
+    14                                  
+    15 00000001 B8A00F0000                  mov eax, 4000 ; currently should print backwards
+    16 00000006 E83D000000                  call print_unsigned_int
+    17 0000000B E80D000000                  call print_newline
+    18                                  
+    19 00000010 90                          nop ; end NOP
+    20                                  
+    21                                      ; standard way to exit programs in Linux
+    22 00000011 B801000000                  mov eax, 1 ; sys_exit
+    23 00000016 BB00000000                  mov ebx, 0 ; return value of 0
+    24 0000001B CD80                        int 80H    ; software interrupt
+    25                                  
+    26                                  print_newline:
+    27 0000001D 50                          push eax
+    28 0000001E 53                          push ebx
+    29 0000001F 51                          push ecx
+    30 00000020 52                          push edx
+    31                                  
+    32 00000021 B804000000                  mov eax, 4  ; sys_write
+    33 00000026 BB01000000                  mov ebx, 1  ; STDOUT
+    34 0000002B B9[0A000000]                mov ecx, newline_char ; address of starting char
+    35 00000030 BA01000000                  mov edx, 1  ; 1 character
+    36 00000035 CD80                        int 80h
+    37                                  
+    38 00000037 5A                          pop edx
+    39 00000038 59                          pop ecx
+    40 00000039 5B                          pop ebx
+    41 0000003A 58                          pop eax
+    42                                  
+    43 0000003B C3                          ret
+    44                                  
+    45                                  ; let kernel clean up after us here, dont do for regular stuff!!
+    46                                  exit_early:
+    47 0000003C B801000000                  mov eax, 1 ; syscall 1
+    48 00000041 BB00000000                  mov ebx, 0 ; return value of 0
+    49 00000046 CD80                        int 80H    ; software interrupt
+    50                                  
+    51                                  ; assumes that required number is already in register EAX
+    52                                  print_unsigned_int:
+    53 00000048 52                          push edx   ; will need this for division operations
+    54 00000049 BA00000000                  mov edx, 0 ; load zero for first comparison
+    55                                      
+    56 0000004E 39D0                        cmp eax, edx ; prep branch
+    57 00000050 7502                        jne print_unsigned_start ; branch if we actually have work to do
+    58                                      
+    59 00000052 5A                          pop edx ; put back where we got it from
+    60 00000053 C3                          ret     ; return to caller
+    61                                  
+    62                                      ; for now, we will only print the lowest decimal character in the number
+    63                                    print_unsigned_start:
+    64 00000054 BA00000000                  mov edx, 0      ; edx:eax / <divisor>
+    65 00000059 B90A000000                  mov ecx, 10
+    66 0000005E F7F1                        div ecx         ; remainder is in edx (as per the instruction documentation)
+    67 00000060 50                          push eax        ; will get overwritten by syscall later
+    68                                  
+    69                                      ; sys_write
+    70                                      ;       ecx : address of char(s) to write
+    71                                      ;       ebx : file descriptor to write to
+    72                                      ;       eax : 4 (sys_write syscall)
+    73                                      ;       edx : number of chars to write
+    74 00000061 B804000000                  mov eax, 4  ; sys_write
+    75 00000066 B9[00000000]                mov ecx, digit_lut ; prep the address for sys_write
+    76 0000006B 01D1                        add ecx, edx       ; calculate proper offset of actual character to write
+    77 0000006D BB01000000                  mov ebx, 1  ; STDOUT
+    78 00000072 BA01000000                  mov edx, 1  ; write 1 character
+    79 00000077 CD80                        int 80H     ; generate interrupt
+    80                                  
+    81 00000079 58                          pop eax         ; saved from before interrupt
+    82 0000007A BA00000000                  mov edx, 0      ;
+    83 0000007F 39D0                        cmp eax, edx    ; prep branch again
+    84 00000081 75D1                      jne print_unsigned_start
+    85                                  
+    86                                      ; the routine is over now
+    87 00000083 5A                          pop edx ; saved at the veeery start of the subroutine
+    88 00000084 C3                          ret     ; return to caller

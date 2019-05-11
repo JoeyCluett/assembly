@@ -1,0 +1,23 @@
+     1                                  section .data
+     2                                  section .bss
+     3                                  section .text
+     4                                  
+     5                                  global _start
+     6                                  
+     7                                  _start:
+     8 00000000 90                          nop ; start NOP
+     9                                  
+    10 00000001 BA00000000                  mov edx, 0
+    11 00000006 B810000000                  mov eax, 16
+    12                                  
+    13 0000000B B904000000                  mov ecx, 4
+    14 00000010 F7F1                        div ecx
+    15                                  
+    16                                      
+    17                                  
+    18 00000012 90                          nop ; end NOP
+    19                                  
+    20                                      ; standard way to exit programs in Linux
+    21 00000013 B801000000                  mov eax, 1 ; sys_exit
+    22 00000018 BB00000000                  mov ebx, 0 ; return value of 0
+    23 0000001D CD80                        int 80H    ; software interrupt

@@ -1,0 +1,107 @@
+     1                                  section .data
+     2 00000000 25640A00                    int_string: db 0x25, "d", 0x0a, 0x00
+     3                                      ;               %     d    \n    \0
+     4                                  section .bss
+     5                                  section .text
+     6                                  
+     7                                  extern printf
+     8                                  
+     9                                  ;
+    10                                  ;   this function demonstrates iterating over a 
+    11                                  ;   linked list. it follows the given pointer 
+    12                                  ;   until it encounters NULL
+    13                                  ;
+    14                                  ;   refer to main.c to see the structure of the 
+    15                                  ;   node used in the list
+    16                                  ;
+    17                                  ; not bragging or anything, but... I use 13 instructions.
+    18                                  ; with current compiler settings, gcc produces 19 instructions
+    19                                  ; with size optimization, gcc produces 17 instructions
+    20                                  ;
+    21                                  
+    22                                  global listiter
+    23                                  listiter:
+    24                                  
+    25 00000000 8B442404                    mov eax, DWORD [esp+4] ; load the first pointer. we will follow this to the end
+    26                                  
+    27                                    loop_start:
+    28 00000004 50                          push eax ; save before calling printf
+    29                                      
+    30 00000005 FF7004                      push DWORD [eax+4]      ; pass the integer
+    31 00000008 68[00000000]                push DWORD int_string   ; config string
+    32 0000000D E8(00000000)                call printf ; call that sweet printf function
+    33 00000012 83C408                      add esp, 8  ; clean the stack
+    34                                  
+    35 00000015 58                          pop eax ; saved this before the printf call
+    36                                  
+    37                                      ; follow the yellow brick road...
+    38 00000016 8B08                        mov ecx, [eax]  ; load the 'next' pointer
+    39 00000018 83F900                      cmp ecx, 0      ; test for NULL pointer
+    40 0000001B 7404                        je subr_end
+    41                                  
+    42                                      ; we have at least one node left
+    43 0000001D 89C8                        mov eax, ecx    ; move the pointer for next iteration
+    44 0000001F EBE3                        jmp loop_start  ; back to the beginning
+    45                                  
+    46                                    subr_end:
+    47 00000021 C3                          ret
+    48                                  
+    49                                  ;
+    50                                  ; testing more pointer stuff while interfacing with C
+    51                                  ; tried to optimize this even more. this function follows 
+    52                                  ; a linked list and calls a callback with each data item in the list
+    53                                  ;
+    54                                  ; this function does MORE than the above function with 
+    55                                  ; fewer instructions, but it probably doesnt run as quickly
+    56                                  ; 10 instructions (less than 13!!) but more stack accesses
+    57                                  ;
+    58                                  
+    59                                  global listitercall
+    60                                  listitercall:
+    61                                  
+    62 00000022 8B442404                    mov eax, DWORD [esp+4]  ; grab the node pointer
+    63                                  
+    64                                      ; dont need this anymore because we grab the callback 
+    65                                      ; address directly from the stack when we need it
+    66                                      ;mov ebx, DWORD [esp+8]  ; grab the callback address
+    67                                  
+    68                                    listitercall_loop:
+    69                                  
+    70 00000026 50                          push eax    ; save the value of eax
+    71                                  
+    72 00000027 FF7004                      push DWORD [eax+4]  ; push the argument onto the stack
+    73 0000002A FF542410                    call DWORD [esp+16] ; callback time ( ind(16) because we just pushed more things onto the stack )
+    74 0000002E 83C404                      add esp, 4  ; clean up the stack
+    75                                  
+    76 00000031 58                          pop eax     ; restore the value of eax
+    77                                  
+    78 00000032 8B00                        mov eax, DWORD [eax]  ; advance the pointer to the next node
+    79 00000034 83F800                      cmp eax, 0
+    80 00000037 75ED                        jne listitercall_loop
+    81                                  
+    82                                      ; end of the road
+    83 00000039 C3                          ret
+    84                                  
+    85                                  ;
+    86                                  ; function to count how many elements are in a linked list.
+    87                                  ; iterates through the list incrementing a counter each time
+    88                                  ;
+    89                                  
+    90                                  global listsize
+    91                                  listsize:
+    92 0000003A 8B5C2404                    mov ebx, DWORD [esp+4]  ; grab list pointer
+    93 0000003E 31C0                        xor eax, eax    ; starting size of zero
+    94                                  
+    95                                      ; some error checking
+    96 00000040 83FB00                      cmp ebx, 0          ; test if we were passed a NULL ptr
+    97 00000043 7501                        jne listsize_loop
+    98 00000045 C3                          ret                 ; dont continue. list size is zero
+    99                                  
+   100                                    listsize_loop:
+   101                                      
+   102 00000046 8B1B                        mov ebx, DWORD [ebx]    ; move through the list by one node
+   103 00000048 40                          inc eax
+   104 00000049 83FB00                      cmp ebx, 0
+   105 0000004C 75F8                        jne listsize_loop
+   106                                  
+   107 0000004E C3                          ret

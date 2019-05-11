@@ -1,0 +1,145 @@
+     1                                  ;
+     2                                  ;   x86 asm program to print an integer (refer to line 32)
+     3                                  ;   
+     4                                  ;   previous program printed integers backwards and 
+     5                                  ;   always saw int as positive. this one accepts positive 
+     6                                  ;   and negative integers and prints the negative symbol 
+     7                                  ;   when required
+     8                                  ;
+     9                                  ;   This program uses x86 (32-bit) assembly. It SHOULDN'T
+    10                                  ;   require many changes to successfully port to AMD64 assembly
+    11                                  ;
+    12                                  
+    13                                  section .data
+    14 00000000 303132333435363738-         digit_lut: db "0123456789" ; look up table for binary->decimal digit conversion
+    15 00000009 39                 
+    16                                      digit_lut_len: equ $ - digit_lut ; let assembler figure out the length of the string. this is NOT a new data item
+    17 0000000A 0A                          newline_char: db 0x0A   ; \n
+    18 0000000B 2D                          neg_sym: db 0x2D        ; '-'
+    19                                  
+    20                                  section .bss
+    21                                      ; no uninitialized data
+    22                                  
+    23                                  section .text
+    24                                  
+    25                                  ;global _start
+    26                                  ;_start:
+    27                                  ;global main ; without _start gcc creates one for us and calls main from it
+    28                                  ;main:       ; main label
+    29                                  
+    30                                      ; nop ; start NOP for debugging
+    31                                  
+    32                                      ; push eax    ; really dont need to save this but we will anyway
+    33                                      ; mov eax, -1000000000    ; number to print
+    34                                      ; call print_int          ; expects argument in eax
+    35                                      ; call print_newline      ; doesnt accept arguments
+    36                                      ; pop eax
+    37                                  
+    38                                      ; nop ; end NOP for debugging
+    39                                  
+    40                                      ; ; standard way to exit programs in Linux
+    41                                      ; mov eax, 1 ; sys_exit
+    42                                      ; mov ebx, 0 ; return value of 0
+    43                                      ; int 80H    ; software interrupt
+    44                                  
+    45                                  ; this integer printing function stores all of the digits on the 
+    46                                  ; stack before iterating through in reverse. assumes integer 
+    47                                  ; is passed in eax. also supports negative numbers
+    48                                  global print_int
+    49                                  print_int:
+    50                                  
+    51                                      ; for use with C (32-bit Linux ABI)
+    52                                      ;mov eax, [ebp + 8]
+    53                                      ;mov eax, [ebp - 4]
+    54                                      ;mov edx, 0
+    55                                      ;mov eax, ebx
+    56                                      ;mov eax, [ebp - 8]
+    57                                      ;mov eax, [esp-4]
+    58                                  
+    59 00000000 8B45F4                      mov eax, [ebp-12] ; FOUND IT!!
+    60                                  
+    61 00000003 52                          push edx
+    62 00000004 53                          push ebx
+    63 00000005 51                          push ecx
+    64 00000006 50                          push eax    ; this is pushed last because we may need it in a bit and 
+    65                                                  ; the top of the stack is the most convenient location for it
+    66                                  
+    67                                      ; main digit loop assumes eax is positive
+    68 00000007 83F800                      cmp eax, 0
+    69 0000000A 7D1B                        jge sentinal_prep ; skip next part if eax is already positive
+    70                                      
+    71                                      ; negate eax and print negative sign
+    72 0000000C B804000000                  mov eax, 4  ; sys_write (notice that this overwrites eax, which we need)
+    73 00000011 BB01000000                  mov ebx, 1  ; stdout
+    74 00000016 B9[0B000000]                mov ecx, neg_sym
+    75 0000001B BA01000000                  mov edx, 1  ; 1 char
+    76 00000020 CD80                        int 80H     ; call kernel interrupt
+    77                                  
+    78 00000022 8B0424                      mov eax, DWORD [esp] ; grab the value currently on top of the stack. it is the copy of eax we saved earlier
+    79 00000025 F7D8                        neg eax ; change the sign <- IMPORTANT: wont print correctly if this doesnt happen
+    80                                  
+    81                                    sentinal_prep:
+    82                                      ; push known sentinal value on the stack
+    83 00000027 6AFF                        push DWORD -1 ; DWORD: 32-bit value, coerced if necessary
+    84                                  
+    85                                    get_one_digit:
+    86 00000029 BA00000000                  mov edx, 0  ; needs to be zero or result wont make sense
+    87 0000002E B90A000000                  mov ecx, 10 ; prep divisor
+    88 00000033 F7F1                        div ecx     ; remainder: edx, quotient: eax
+    89                                  
+    90 00000035 52                          push edx   ; modulus of last operation
+    91 00000036 83F800                      cmp eax, 0 ; repeat while not 0
+    92 00000039 75EE                        jne get_one_digit
+    93                                  
+    94                                    print_digits:
+    95 0000003B 59                          pop ecx     ; retrieve the next value from the stack
+    96 0000003C 83F9FF                      cmp ecx, -1 ; is this the sentinal?
+    97 0000003F 7419                        je clean_up_print_int
+    98                                  
+    99                                      ; this is where we pop the digits off of the stack 
+   100                                      ; and print them in the proper order
+   101 00000041 B804000000                  mov eax, 4 ; sys_write
+   102 00000046 BB01000000                  mov ebx, 1 ; stdout
+   103 0000004B 81C1[00000000]              add ecx, digit_lut ; find correct character
+   104 00000051 BA01000000                  mov edx, 1 ; 1 character
+   105 00000056 CD80                        int 80h
+   106                                  
+   107 00000058 EBE1                        jmp print_digits ; x86 goto (cant get around it in assembly)
+   108                                  
+   109                                    clean_up_print_int:
+   110                                  
+   111                                      ; return the registers back to their proper locations
+   112 0000005A 58                          pop eax
+   113 0000005B 59                          pop ecx
+   114 0000005C 5B                          pop ebx
+   115 0000005D 5A                          pop edx
+   116                                  
+   117 0000005E C3                          ret ; go back to caller
+   118                                  
+   119                                  print_newline:
+   120 0000005F 50                          push eax
+   121 00000060 53                          push ebx
+   122 00000061 51                          push ecx
+   123 00000062 52                          push edx
+   124                                  
+   125 00000063 B804000000                  mov eax, 4  ; sys_write
+   126 00000068 BB01000000                  mov ebx, 1  ; STDOUT
+   127 0000006D B9[0A000000]                mov ecx, newline_char ; address of starting char
+   128 00000072 BA01000000                  mov edx, 1  ; 1 character
+   129 00000077 CD80                        int 80h
+   130                                  
+   131 00000079 5A                          pop edx
+   132 0000007A 59                          pop ecx
+   133 0000007B 5B                          pop ebx
+   134 0000007C 58                          pop eax
+   135                                  
+   136 0000007D C3                          ret
+   137                                  
+   138                                  ; let kernel clean up after us here, dont do for regular stuff!!
+   139                                  exit_early:
+   140 0000007E 90                          nop
+   141 0000007F B801000000                  mov eax, 1 ; sys_exit
+   142 00000084 BB01000000                  mov ebx, 1 ; return value of 1 (improper exit)
+   143 00000089 CD80                        int 0x80    ; software interrupt
+   144                                  
+   145                                  ; ...not bad

@@ -1,0 +1,62 @@
+     1                                  ;
+     2                                  ;   program adds first (starting from the right in C) 
+     3                                  ;   N arguments and returns the sum
+     4                                  ;
+     5                                  
+     6                                  section .data
+     7 00000000 73756D617267766563-         addargerr: db "sumargvec: malformed argument", 0x00
+     8 00000009 3A206D616C666F726D-
+     9 00000012 656420617267756D65-
+    10 0000001B 6E7400             
+    11                                  section .bss
+    12                                  section .text
+    13                                  
+    14                                  ; tell assembler this function is located elsewhere
+    15                                  ; gcc will find puts in glibc during the link process
+    16                                  extern puts
+    17                                  
+    18                                  ; behold the power of variadic functions!!
+    19                                  global sumargvec
+    20                                  sumargvec:
+    21                                  
+    22 00000000 8B4C2404                    mov ecx, DWORD [esp+4]
+    23                                  
+    24                                      ; return if there arent anymore arguments. if we can rely on 
+    25                                      ; programmers to not abuse this... haha jk
+    26 00000004 83F900                      cmp ecx, 0    ; prep for jump
+    27 00000007 7F12                        jg sumargbegin      ; dont continue if there are zero or less arguments
+    28                                  
+    29                                      ; give error message before returning
+    30 00000009 68[00000000]                push DWORD addargerr    ; prep the error message
+    31 0000000E E8(00000000)                call puts   ; print the error
+    32 00000013 83C404                      add esp, 4  ; caller cleans up
+    33                                  
+    34                                      ; return if improperly formed argument list
+    35 00000016 8B442404                    mov eax, DWORD [esp+4]  ; return requested number of parameters to caller
+    36 0000001A C3                          ret ; exit subroutine early
+    37                                  
+    38                                    sumargbegin:
+    39                                      ; prep ecx (used to index esp to grab rest of arguments)
+    40 0000001B 83C101                      add ecx, 1  ; need to go one extra index (arg list: N, N args)
+    41 0000001E C1E102                      shl ecx, 2  ; multiply by 4 (4 bytes per integer to add)
+    42                                  
+    43                                      ;
+    44                                      ; a word on multiplies
+    45                                      ;
+    46                                      ; the reason i dont use a mul instruction here is that (i)mul instructions 
+    47                                      ; take more than one register to perform whereas shifts and adds can be 
+    48                                      ; done in-place with a single register. x86-32 famously has a ridiculously 
+    49                                      ; small number of general purpose registers
+    50                                      ;
+    51                                  
+    52                                      ; meat of sumargvec
+    53 00000021 B800000000                  mov eax, DWORD 0    ; prep eax for addition
+    54                                  
+    55                                    sumargvloop:
+    56 00000026 03040C                      add eax, [esp+ecx]  ; add a stack item to running total
+    57 00000029 83C1FC                      add ecx, -4         ; prep next index
+    58 0000002C 83F904                      cmp ecx, DWORD 4    ; we need to stop at 4
+    59 0000002F 7FF5                        jg sumargvloop     ; loop until finished
+    60                                  
+    61 00000031 C3                          ret
+    62                                  
