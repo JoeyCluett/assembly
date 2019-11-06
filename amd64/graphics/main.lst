@@ -1,0 +1,60 @@
+     1                                 %line 1+1 main.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 
+     6                                 
+     7                                 
+     8                                 [global _main]
+     9                                 
+    10                                 
+    11                                 [extern SDL_Init]
+    12                                 [extern SDL_Quit]
+    13                                 [extern setvideomode]
+    14                                 [extern SDL_Delay]
+    15                                 
+    16                                 [section .data]
+    17 00000000 FFFF000000000000        INIT_EVERYTHING: dq 0x0000FFFF
+    18 00000008 0100000000000000        HW_SURFACE: dq 0x00000001
+    19 00000010 0000004000000000        DOUBLE_BUFFER: dq 0x40000000
+    20 00000018 2C01000000000000        WIDTH: dq 300
+    21 00000020 C800000000000000        HEIGHT: dq 200
+    22                                 
+    23                                 [section .text]
+    24                                 _main:
+    25                                 
+    26                                 
+    27                                 
+    28                                 
+    29                                 
+    30                                 
+    31                                 
+    32 00000000 53                      push rbx
+    33                                 
+    34 00000001 48C7C7[00000000]        mov rdi, INIT_EVERYTHING
+    35 00000008 E8(F6FFFFFF)            call SDL_Init
+    36                                 
+    37                                 
+    38 0000000D 48C7C7[00000000]        mov rdi, WIDTH
+    39 00000014 48C7C6[00000000]        mov rsi, HEIGHT
+    40 0000001B 48C7C220000000          mov rdx, DWORD 32
+    41 00000022 488B0C25[00000000]      mov rcx, [HW_SURFACE]
+    42 0000002A 480B0C25[00000000]      or rcx, [DOUBLE_BUFFER]
+    43                                 
+    44                                 
+    45 00000032 E8(F6FFFFFF)            call setvideomode
+    46                                 
+    47                                 
+    48 00000037 4889C3                  mov rbx, rax
+    49                                 
+    50 0000003A 48BFE8030000000000-     mov rdi, QWORD 1000
+    51 0000003A 00                 
+    52 00000044 E8(F6FFFFFF)            call SDL_Delay
+    53                                 
+    54 00000049 E8(F6FFFFFF)            call SDL_Quit
+    55                                 
+    56                                 
+    57 0000004E 4831C0                  xor rax, rax
+    58 00000051 5B                      pop rbx
+    59                                 
+    60 00000052 C3                      ret
