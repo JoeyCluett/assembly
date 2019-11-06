@@ -8,6 +8,7 @@ global _main
 
 extern printf
 extern puts
+extern scanf
 
 ; start nice and easy
 extern SDL_Init
@@ -16,17 +17,21 @@ extern SDL_SetVideoMode
 extern SDL_Delay
 
 section .data 
-    INIT_EVERYTHING: dq 0x0000FFFF
-    HW_SURFACE:      dq 0x00000001
-    DOUBLE_BUFFER:   dq 0x40000000
-    WIDTH:           dq 300
-    HEIGHT:          dq 200
+    INIT_EVERYTHING:    dq 0x0000FFFF
+    HW_SURFACE:         dq 0x00000001
+    DOUBLE_BUFFER:      dq 0x40000000
+    WIDTH:              dq 300
+    HEIGHT:             dq 200
 
-    sdlinit_success: db "sdlinit was successful", 0x0
-    sdlinit_format:  db "sdlinit returned: %d", 0xA, 0x0
-    screensize:      db "screen width: %d, screen height: %d", 0xA, 0x0
+    sdlinit_success:    db "sdlinit was successful", 0x0
+    sdlinit_format:     db "sdlinit returned: %d", 0xA, 0x0
+    screensize:         db "screen width: %d, screen height: %d", 0xA, 0x0
+    read_double:        db "%lf", 0x0
 
 section .text
+_sub_read_double:
+    push 
+
 _main:
 
     ; gonna use this place to store pointer to current context 
@@ -42,7 +47,7 @@ _main:
     mov rsi, rax            ; sdlinit placed something here
     call printf
 
-    cmp rax, -1
+    cmp eax, -1
     jz cleanup
 
     ; print the size of the screen requested
