@@ -1,0 +1,18 @@
+     1                                 %line 1+1 main.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 
+     6                                 [global main]
+     7                                 [extern puts]
+     8                                 
+     9                                 [section .data]
+    10 00000000 68656C6C6F20776F72-    msg: db "hello world using puts", 0xA, 0x0
+    11 00000000 6C64207573696E6720-
+    12 00000000 707574730A00       
+    13                                 
+    14                                 [section .text]
+    15                                 main:
+    16 00000000 48C7C7[00000000]        mov rdi, msg
+    17 00000007 E8(F6FFFFFF)            call puts
+    18 0000000C C3                      ret

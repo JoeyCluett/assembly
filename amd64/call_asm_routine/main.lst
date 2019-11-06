@@ -1,0 +1,33 @@
+     1                                 %line 1+1 main.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 
+     6                                 
+     7                                 
+     8                                 
+     9                                 
+    10                                 
+    11                                 
+    12                                 
+    13                                 
+    14                                 
+    15                                 [global add_ints]
+    16                                 
+    17                                 [section .text]
+    18                                 add_ints:
+    19 00000000 4831C0                  xor rax, rax
+    20                                 
+    21 00000003 4883FE00                cmp rsi, 0
+    22 00000007 740D                    jz end_add_ints
+    23                                 
+    24                                  loop_start:
+    25 00000009 488B17                  mov rdx, QWORD [rdi]
+    26 0000000C 4801D0                  add rax, rdx
+    27 0000000F 4883C708                add rdi, 8
+    28 00000013 48FFCE                  dec rsi
+    29 00000016 75EF                    jnz loop_start
+    30                                 
+    31                                  end_add_ints:
+    32 00000018 C3                      ret
+    33                                 

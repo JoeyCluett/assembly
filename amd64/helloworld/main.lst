@@ -1,0 +1,27 @@
+     1                                 %line 1+1 main.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 
+     6                                 
+     7                                 [global _start]
+     8                                 
+     9                                 [section .data]
+    10 00000000 68656C6C6F20776F72-     message: db "hello world", 0xA, 0xA, 0xA
+    11 00000000 6C640A0A0A         
+    12                                  message_length: equ $ - message
+    13                                 
+    14                                 [section .text]
+    15                                 _start:
+    16 00000000 48C7C001000000          mov rax, 1
+    17 00000007 48C7C701000000          mov rdi, 1
+    18 0000000E 48C7C6[00000000]        mov rsi, message
+    19 00000015 48BA0E000000000000-     mov rdx, message_length
+    20 00000015 00                 
+    21 0000001F 0F05                    syscall
+    22                                 
+    23                                 
+    24 00000021 48C7C03C000000          mov rax, 60
+    25 00000028 4831FF                  xor rdi, rdi
+    26                                 
+    27 0000002B 0F05                    syscall
