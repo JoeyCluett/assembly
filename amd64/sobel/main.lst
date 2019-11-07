@@ -1,0 +1,154 @@
+     1                                 %line 1+1 main.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 
+     6                                 
+     7                                 
+     8                                 
+     9                                 
+    10                                 
+    11                                 
+    12                                 
+    13                                 
+    14                                 
+    15                                 [extern printf]
+    16                                 
+    17                                 [global apply_sobel]
+    18                                 
+    19                                 
+    20                                 [section .data]
+    21 00000000 00000000000024C000-     sobel: dq -1.0e1, -2.0e1, -1.0e1
+    22 00000000 000000000034C00000-
+    23 00000000 0000000024C0       
+    24 00000018 000000000000000000-     sobelr1: dq 0.0e1, 0.0e1, 0.0e1
+    25 00000018 000000000000000000-
+    26 00000018 000000000000       
+    27 00000030 000000000000244000-     sobelr2: dq 1.0e1, 2.0e1, 1.0e1
+    28 00000030 000000000034400000-
+    29 00000030 000000002440       
+    30                                 
+    31 00000048 25700A25700A25700A-     print_ptr_format: db "%p", 0xA, "%p", 0xA, "%p", 0xA, 0x0
+    32 00000048 00                 
+    33 00000052 59203D2025642C2058-     print_int: db "Y = %d, X = %d", 0xA, 0x0
+    34 00000052 203D2025640A00     
+    35 00000062 48203D2025642C2057-     image_size_fmt: db "H = %d, W = %d", 0xA, 0x0
+    36 00000062 203D2025640A00     
+    37 00000072 5074723A2025700A00      print_pointer: db "Ptr: %p", 0xA, 0x0
+    38                                 
+    39                                 [section .text]
+    40                                 apply_sobel:
+    41                                 
+    42 00000000 55                      push rbp
+    43 00000001 4889E5                  mov rbp, rsp
+    44 00000004 4883EC50                sub rsp, 80
+    45                                 
+    46                                 
+    47                                 
+    48                                 
+    49                                 
+    50                                 
+    51                                 
+    52                                 
+    53                                 
+    54                                 
+    55 00000008 4883FA03                cmp rdx, 3
+    56 0000000C 0F8CC1000000            jl clean_and_return
+    57 00000012 4883F903                cmp rcx, 3
+    58 00000016 0F8CB7000000            jl clean_and_return
+    59                                 
+    60 0000001C 48897C2408              mov [rsp+8], rdi
+    61 00000021 4889742410              mov [rsp+16], rsi
+    62 00000026 4889542418              mov [rsp+24], rdx
+    63 0000002B 48894C2420              mov [rsp+32], rcx
+    64                                 
+    65 00000030 48C7C7[00000000]        mov rdi, image_size_fmt
+    66 00000037 488B742418              mov rsi, [rsp+24]
+    67 0000003C 488B542420              mov rdx, [rsp+32]
+    68 00000041 E8(F6FFFFFF)            call printf
+    69                                 
+    70 00000046 488B7C2408              mov rdi, [rsp+8]
+    71 0000004B 488B742410              mov rsi, [rsp+16]
+    72 00000050 488B542418              mov rdx, [rsp+24]
+    73 00000055 488B4C2420              mov rcx, [rsp+32]
+    74                                 
+    75                                 
+    76                                 
+    77 0000005A 4883EA02                sub rdx, 2
+    78 0000005E 4883E902                sub rcx, 2
+    79 00000062 48C1E103                shl rcx, 3
+    80                                 
+    81                                 
+    82                                 
+    83 00000066 4D31C0                  xor r8, r8
+    84                                 
+    85                                 
+    86                                 
+    87                                 
+    88                                  outer_loop:
+    89                                 
+    90 00000069 4D31C9                  xor r9, r9
+    91                                 
+    92                                  inner_loop:
+    93                                 
+    94                                 
+    95                                 
+    96                                 
+    97                                 
+    98 0000006C F20F5CC0                subsd xmm0, xmm0
+    99                                 
+   100 00000070 4D89C2                  mov r10, r8
+   101 00000073 4C0FAFD1                imul r10, rcx
+   102 00000077 4D01CA                  add r10, r9
+   103 0000007A 4901FA                  add r10, rdi
+   104                                 
+   105 0000007D F20F100C25[00000000]      movsd xmm1, QWORD [sobel]
+   106 00000086 F2410F590A              mulsd xmm1, [r10]
+   107 0000008B F20F58C1                addsd xmm0, xmm1
+   108                                 
+   109                                 
+   110                                 
+   111 0000008F F20F100C25[08000000]      movsd xmm1, QWORD [sobel + 8]
+   112 00000098 F2410F594A08            mulsd xmm1, [r10 + 8]
+   113 0000009E F20F58C1                addsd xmm0, xmm1
+   114                                 
+   115 000000A2 F20F100C25[10000000]      movsd xmm1, QWORD [sobel + 16]
+   116 000000AB F2410F594A10            mulsd xmm1, [r10 + 16]
+   117 000000B1 F20F58C1                addsd xmm0, xmm1
+   118                                 
+   119 000000B5 F20F100C25[18000000]      movsd xmm1, QWORD [sobel + 24]
+   120 000000BE F2410F594A18            mulsd xmm1, [r10 + 24]
+   121 000000C4 F20F58C1                addsd xmm0, xmm1
+   122                                 
+   123                                 
+   124                                 
+   125 000000C8 4983C108                add r9, 8
+   126 000000CC 4939C9                  cmp r9, rcx
+   127 000000CF 7C99                    jl inner_loop
+   128                                 
+   129                                 
+   130 000000D1 49FFC0                  inc r8
+   131 000000D4 4C39C2                  cmp rdx, r8
+   132 000000D7 758E                    jne outer_loop
+   133                                 
+   134                                  clean_and_return:
+   135                                 
+   136 000000D9 4883C450                add rsp, 80
+   137 000000DD 5D                      pop rbp
+   138 000000DE C3                      ret
+   139                                 
+   140                                 
+   141                                  invalid_image_size:
+   142 000000DF EBF6                    jmp clean_and_return
+   143                                 
+   144                                 
+   145                                 
+   146                                 
+   147                                 
+   148                                 
+   149                                 
+   150                                 
+   151                                 
+   152                                 
+   153                                 
+   154                                 
