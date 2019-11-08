@@ -10,8 +10,8 @@
 ;   0   0   0
 ;   1   2   1
 ;
-; a huge optimization made in this program is ignoring the center 
-; row entirely as the results are known to be zero. we will have 
+; a huge optimization made in this program is ignoring the center
+; row entirely as the results are known to be zero. we will have
 ; to see if the compiler makes the same optimization
 ;
 ; this program does not pad anything. it simply ignores the
@@ -30,6 +30,13 @@ section .data
     sobelr1: dq  0.0,  0.0,  0.0,  0.0
     align 32
     sobelr2: dq  1.0,  2.0,  1.0,  0.0
+
+    align 32
+    sobelr0_shr: dq  0.0, -1.0, -2.0, -1.0
+    align 32
+    sobelr1_shr: dq  0.0,  0.0,  0.0,  0.0
+    align 32
+    sobelr2_shr: dq  0.0,  1.0,  2.0,  1.0
 
     print_pointer: db "Ptr: %p", 0xA, 0x0
 
@@ -77,6 +84,10 @@ apply_simd_sobel:
     vmovapd ymm1, [sobelr1] ; ...
     vmovapd ymm2, [sobelr2] ; ...
 
+    vmovapd ymm3, [sobelr0_shr]
+    vmovapd ymm4, [sobelr1_shr]
+    vmovapd ymm5, [sobelr2_shr]
+
   outer_loop:
 
     xor r9, r9  ; zero out every width iteration
@@ -93,32 +104,68 @@ apply_simd_sobel:
     ; preserve the global window pointer
     mov r10, rdi    ; modify a copy of the current window pointer
 
-    vmovupd ymm3, [r10] ; read 4 doubles in one sweep
-    
-    lea r10, [r10 + 1*rcx + 16]    ; r10 = r10 + rcx + 16
-    vmovupd ymm4, [r10]
+    vmovupd ymm6, [r10] ; read 4 doubles in one sweep
 
     lea r10, [r10 + 1*rcx + 16]    ; r10 = r10 + rcx + 16
-    vmovupd ymm5, [r10]
+    vmovupd ymm7, [r10]
 
-    ; multiply all necessary coefficients in three multiplies
-    vmulpd ymm3, ymm0   ; generate top row partial sums
-    vmulpd ymm4, ymm1   ; generate middle row partial sums
-    vmulpd ymm5, ymm2   ; generate bottom row partial sums
+    lea r10, [r10 + 1*rcx + 16]    ; r10 = r10 + rcx + 16
+    vmovupd ymm8, [r10]
 
-    vaddpd ymm3, ymm4   ; add middle row sums to top row sums
-    vaddpd ymm3, ymm5   ; add bottom row sums to top row sum
+    ; we need copies of that window data
+    vmovapd ymm9,  ymm6
+    vmovapd ymm10, ymm7
+    vmovapd ymm11, ymm8
+
+    ; ---------------------------------
+    ; element n   = [ ymm6 ; ymm7  ; ymm8  ]
+    ; element n+1 = [ ymm9 ; ymm10 ; ymm11 ]
+    ; ---------------------------------
+
+    ; we can now generate partial sums for two adjacent dest elments
+    vmulpd ymm6, ymm0   ; element n, generate top row
+    vmulpd ymm7, ymm1   ; element n, generate middle row
+    vmulpd ymm8, ymm2   ; element n, generate bottom row
+
+    vmulpd ymm9,  ymm3  ; element n+1, generate top row
+    vmulpd ymm10, ymm4  ; element n+1, generate middle row
+    vmulpd ymm11, ymm5  ; element n+1, generate bottom row
+
+    vaddpd ymm8, ymm6   ; element n, add bottom and top row
+    vaddpd ymm8, ymm7   ; element n, add bottom and middle row
+
+    vaddpd ymm11, ymm9  ; element n+1, add bottom and top row
+    vaddpd ymm11, ymm10 ; element n+1, add bottom and mddle row
+
+    ; ymm8  contains partial sums for element n
+    ; ymm11 contains partial sums for element n+1
+
+    ; registers that can be reused: ymm6, ymm7, ymm9, ymm10
+    ;vextracti128 xmm6, ymm8, 1  ; extract upper 128 bits of element n
+    ;vextracti128 xmm9, ymm11, 1 ; extract upper 128 bits of eleent n+1
+
+    addpd xmm8,  xmm6 ; element n,   add lower 128-bits to upper 128-bits
+    addpd xmm11, xmm9 ; element n+1, add lower 128-bits to upper 128-bits
+
+    vpermq ymm7,  ymm8,  0x01 ; element n,   extract the remaining 64-bit partial
+    vpermq ymm10, ymm11, 0x01 ; element n+1, extract the remaining 64-bit partial
+
+    addsd xmm8,  xmm7   ; element n,   add final partial sums
+    addsd xmm11, xmm10  ; element n+1, add final partial sums
 
     ; ymm3 now contains all partial sums
-    vmovupd [rsp], ymm3        ; store the full 256-bit chunk into memory
-    movupd  xmm4, [rsp+16]     ; load the upper half into seperate register
-    movsd   xmm5, [rsp+8]      ; load the upper half of the lower chunk
-    addpd   xmm3, xmm4         ; this only works because we dont care about the most significant number
-    addsd   xmm3, xmm5         ; add the last partial sum
+    ;vmovupd [rsp], ymm3        ; store the full 256-bit chunk into memory
+    ;movupd  xmm4, [rsp+16]     ; load the upper half into seperate register
+    ;movsd   xmm5, [rsp+8]      ; load the upper half of the lower chunk
+    ;addpd   xmm3, xmm4         ; this only works because we dont care about the most significant number
+    ;addsd   xmm3, xmm5         ; add the last partial sum
 
     ; store data in destination array, xmm0 is the total sum for this window
-    movsd [rsi], xmm3
-    
+    ;movsd [rsi], xmm3
+
+    movsd [rsi],   xmm8
+    movsd [rsi+8], xmm11
+
     add rdi, 8  ; next window start
     add rsi, 8  ; next destination
 

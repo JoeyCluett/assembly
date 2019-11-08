@@ -10,8 +10,8 @@
 ;   0   0   0
 ;   1   2   1
 ;
-; a huge optimization made in this program is ignoring the center 
-; row entirely as the results are known to be zero. we will have 
+; a huge optimization made in this program is ignoring the center
+; row entirely as the results are known to be zero. we will have
 ; to see if the compiler makes the same optimization
 ;
 ; this program does not pad anything. it simply ignores the
@@ -108,10 +108,10 @@ apply_gp_sobel:
 
     add r10, rcx  ; jump to the next row in the src array
     add r10, 16
-    
+
     subsd xmm12, xmm12
     subsd xmm13, xmm13
-    
+
     movsd xmm4, QWORD [sobel3]
     mulsd xmm4, QWORD [r10 + 0]
     addsd xmm12, xmm4
@@ -119,12 +119,12 @@ apply_gp_sobel:
     movsd xmm5, QWORD [sobel4]
     mulsd xmm5, QWORD [r10 + 8]
     addsd xmm13, xmm5
-    
+
     movsd xmm6, QWORD [sobel5]
     mulsd xmm6, QWORD [r10 + 16]
     addsd xmm0, xmm6
-    
-    addsd xmm12, xmm13 
+
+    addsd xmm12, xmm13
 
     add r10, rcx   ; jump to the next row in the src array
     add r10, 16
@@ -133,7 +133,7 @@ apply_gp_sobel:
     subsd xmm15, xmm15
 
     movsd xmm7, QWORD [sobel6]
-    mulsd xmm7, QWORD [r10 + 0]
+    mulsd xmm7, QWORD [r10]
     addsd xmm14, xmm7
 
     movsd xmm8, QWORD [sobel7]
@@ -153,7 +153,7 @@ apply_gp_sobel:
 
     ; store data in destination register, xmm0 is the total sum for this window
     movsd [rsi], xmm0
-    
+
     add rdi, 8  ; next window start
     add rsi, 8  ; next destination
 
@@ -194,5 +194,3 @@ apply_gp_sobel:
 ; ... you might be an assembly programmer
 ;
 ;
-
-

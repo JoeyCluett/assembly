@@ -13,13 +13,13 @@
     13 00000000 [0000000000000000]-     jump_lut: dq apply_gp_sobel, apply_simd_sobel
     14 00000000 [0000000000000000] 
     15                                 
-    16                                 [section .text]
-    17                                 sobel:
-    18 00000000 55                      push rbp
-    19 00000001 4889E5                  mov rbp, rsp
-    20                                 
-    21                                 
-    22                                 
+    16 00000010 0000000000000000        normal_ret_val: dq 0x00000000
+    17 00000018 0100000000000000        simd_no_support: dq 0x00000001
+    18                                 
+    19                                 [section .text]
+    20                                 sobel:
+    21 00000000 55                      push rbp
+    22 00000001 4889E5                  mov rbp, rsp
     23                                 
     24                                 
     25                                 
@@ -28,11 +28,17 @@
     28                                 
     29                                 
     30                                 
-    31 00000004 4983F802                cmp r8, 2
-    32 00000008 7D09                    jge end_sobel
-    33 0000000A 49C1E003                shl r8, 3
-    34 0000000E 4981C0[00000000]        add r8, jump_lut
-    35                                 
-    36                                  end_sobel:
-    37 00000015 5D                      pop rbp
-    38 00000016 C3                      ret
+    31                                 
+    32                                 
+    33                                 
+    34 00000004 4983F802                cmp r8, 2
+    35 00000008 7D09                    jge end_sobel
+    36 0000000A 49C1E003                shl r8, 3
+    37 0000000E 41FF90[00000000]        call [r8 + jump_lut]
+    38                                 
+    39                                 
+    40                                 
+    41                                 
+    42                                  end_sobel:
+    43 00000015 5D                      pop rbp
+    44 00000016 C3                      ret
