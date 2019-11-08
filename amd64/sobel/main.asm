@@ -10,6 +10,10 @@
 ;   0   0   0
 ;   1   2   1
 ;
+; a huge optimization made in this program is ignoring the center 
+; row entirely as the results are known to be zero. we will have 
+; to see if the compiler makes the same optimization
+;
 ; this program does not pad anything. it simply ignores the
 ; outermost rows and columns of the input image
 ;
@@ -20,19 +24,20 @@ global apply_sobel
 
 ; .data section stores the data for the Sobel operator. this can be changed
 section .data
-    sobel:      dq -1.0, -2.0, -1.0
-    sobelr1:    dq  0.0,  0.0,  0.0
-    sobelr2:    dq  1.0,  2.0,  1.0
+    ;sobel:      dq -1.0, -2.0, -1.0
+    ;sobelr1:    dq  0.0,  0.0,  0.0
+    ;sobelr2:    dq  1.0,  2.0,  1.0
 
-    const_zero: dq 1.0
-
-    print_ptr_format:   db "%p", 0xA, "%p", 0xA, "%p", 0xA, 0x0
-    print_int:          db "Y = %d, X = %d", 0xA, 0x0
-    image_size_fmt:     db "H = %d, W = %d", 0xA, 0x0
-    print_pointer:      db "Ptr: %p", 0xA, 0x0
-    print_double:       db "%lf ", 0x0
-    print_double_ln:    db "%lf", 0xA, 0x0
-    print_ln:           db 0xA, 0x0
+    ; create constants that can be used instead if the add/index instructions
+    sobel0: dq -1.0
+    sobel1: dq -2.0
+    sobel2: dq -1.0
+    sobel3: dq  0.0
+    sobel4: dq  0.0
+    sobel5: dq  0.0
+    sobel6: dq  1.0
+    sobel7: dq  2.0
+    sobel8: dq  1.0
 
 section .text
 apply_sobel:
@@ -49,18 +54,6 @@ apply_sobel:
     ; rcx : image width
     ;
 
-    ; print the address of the src image
-    push rdi
-    ;mov rdi, rdi
-    call print_pointer_subroutine
-    pop rdi
-
-    ; print the address of the dest image
-    push rdi    ; ERROR EARLIER BECAUSE I WAS PUSHING rsi INSTEAD OF rdi. ONE LETTER!!!!!!!!!!!!!!!!!!!!!!!!!!
-    mov rdi, rsi
-    call print_pointer_subroutine
-    pop rdi
-
     ; do nothing if either of the sizes is less than 3
     cmp rdx, 3
     jl clean_and_return
@@ -73,22 +66,12 @@ apply_sobel:
     sub rcx, 2 ; img w
     shl rcx, 3 ; rcx is now the width of each row in bytes
 
-    ;jmp clean_and_return
+    ; now modify rsi such that it points to the first destination space
+    add rsi, rcx
+    add rsi, 24
 
     xor r8, r8 ; height track
     ;xor r9, r9 ; width track
-
-    ; print the first element in the src array
-    sub rsp, 8
-    movsd [rsp+8], xmm0
-    movsd xmm0, [rdi]
-    call print_double_subroutine
-    movsd xmm0, [rsp+8]
-    add rsp, 8
-
-    push rdi
-    call print_newline
-    pop rdi
 
   outer_loop:
 
@@ -100,147 +83,88 @@ apply_sobel:
     ; HERE BE DRAGONS
     ; ========================================
 
-    ;subsd xmm0, xmm0    ; need a zero to start adding to
-    movsd xmm0, [const_zero]
+    ; the cumulative sum is generated across all 16 of the xmmN registers
+    subsd xmm0, xmm0
 
-    ;mov  r10, r8   ; r8 is the current vertical index
-    ;imul r10, rcx  ; generate the byte offset for this row
-    ;add  r10, r9   ; r9 is the byte offset of the current element
-    ;add  r10, rdi  ; add the base pointer before fetching
+    ; preserve the global window pointer
+    mov r10, rdi    ; modify a copy of the current window pointer
 
-    mov r10, rdi
+    subsd xmm10, xmm10
+    subsd xmm11, xmm11
 
-    ;movsd xmm1, QWORD [sobel] ; fetch upper left sobel coeffient
-    ;mulsd xmm1, QWORD [r10]   ; fetch the current element
-    ;addsd xmm0, xmm1    ; add to the cumulative sum for this window
+    movsd xmm1, QWORD [sobel0]
+    mulsd xmm1, QWORD [r10 + 0]
+    addsd xmm10, xmm1
 
-    ; look at this awesome clusterf*ck of RAW and WAW hazards!!
+    movsd xmm2, QWORD [sobel1]
+    mulsd xmm2, QWORD [r10 + 8]
+    addsd xmm11, xmm2
 
-    movsd xmm1, QWORD [sobel + 0]
-    movsd xmm1, QWORD [r10 + 0]
-    addsd xmm0, xmm1
+    movsd xmm3, QWORD [sobel2]
+    mulsd xmm3, QWORD [r10 + 16]
+    addsd xmm0, xmm3
 
-    sub rsp, 8
-    movsd [rsp+8], xmm0
-    movsd xmm0, xmm1
-    call print_double_subroutine
-    movsd xmm0, [rsp+8]
-    add rsp, 8
-
-    movsd xmm1, QWORD [sobel + 8]
-    movsd xmm1, QWORD [r10 + 8]
-    addsd xmm0, xmm1
-
-    sub rsp, 8
-    movsd [rsp+8], xmm0
-    movsd xmm0, xmm1
-    call print_double_subroutine
-    movsd xmm0, [rsp+8]
-    add rsp, 8
-
-    movsd xmm1, QWORD [sobel + 16]
-    movsd xmm1, QWORD [r10 + 16]
-    addsd xmm0, xmm1
-
-    sub rsp, 8
-    movsd [rsp+8], xmm0
-    movsd xmm0, xmm1
-    call print_double_subroutine
-    movsd xmm0, [rsp+8]
-    add rsp, 8
+    addsd xmm10, xmm11
 
     add r10, rcx  ; jump to the next row in the src array
+    add r10, 16
+    
+    subsd xmm12, xmm12
+    subsd xmm13, xmm13
+    
+    movsd xmm4, QWORD [sobel3]
+    mulsd xmm4, QWORD [r10 + 0]
+    addsd xmm12, xmm4
 
-    movsd xmm1, QWORD [sobel + 24]
-    movsd xmm1, QWORD [r10 + 0]
-    addsd xmm0, xmm1
-
-    sub rsp, 8
-    movsd [rsp+8], xmm0
-    movsd xmm0, xmm1
-    call print_double_subroutine
-    movsd xmm0, [rsp+8]
-    add rsp, 8
-
-    movsd xmm1, QWORD [sobel + 32]
-    movsd xmm1, QWORD [r10 + 8]
-    addsd xmm0, xmm1
-
-    sub rsp, 8
-    movsd [rsp+8], xmm0
-    movsd xmm0, xmm1
-    call print_double_subroutine
-    movsd xmm0, [rsp+8]
-    add rsp, 8
-
-    movsd xmm1, QWORD [sobel + 40]
-    movsd xmm1, QWORD [r10 + 16]
-    addsd xmm0, xmm1
-
-    sub rsp, 8
-    movsd [rsp+8], xmm0
-    movsd xmm0, xmm1
-    call print_double_subroutine
-    movsd xmm0, [rsp+8]
-    add rsp, 8
+    movsd xmm5, QWORD [sobel4]
+    mulsd xmm5, QWORD [r10 + 8]
+    addsd xmm13, xmm5
+    
+    movsd xmm6, QWORD [sobel5]
+    mulsd xmm6, QWORD [r10 + 16]
+    addsd xmm0, xmm6
+    
+    addsd xmm12, xmm13 
 
     add r10, rcx   ; jump to the next row in the src array
+    add r10, 16
 
-    movsd xmm1, QWORD [sobel + 48]
-    movsd xmm1, QWORD [r10 + 0]
-    addsd xmm0, xmm1
+    subsd xmm14, xmm14
+    subsd xmm15, xmm15
 
-    sub rsp, 8
-    movsd [rsp+8], xmm0
-    movsd xmm0, xmm1
-    call print_double_subroutine
-    movsd xmm0, [rsp+8]
-    add rsp, 8
+    movsd xmm7, QWORD [sobel6]
+    mulsd xmm7, QWORD [r10 + 0]
+    addsd xmm14, xmm7
 
-    movsd xmm1, QWORD [sobel + 56]
-    movsd xmm1, QWORD [r10 + 8]
-    addsd xmm0, xmm1
+    movsd xmm8, QWORD [sobel7]
+    mulsd xmm8, QWORD [r10 + 8]
+    addsd xmm15, xmm8
 
-    sub rsp, 8
-    movsd [rsp+8], xmm0
-    movsd xmm0, xmm1
-    call print_double_subroutine
-    movsd xmm0, [rsp+8]
-    add rsp, 8
+    movsd xmm9, QWORD [sobel8]
+    mulsd xmm9, QWORD [r10 + 16]
+    addsd xmm0, xmm9
 
-    movsd xmm1, QWORD [sobel + 64]
-    movsd xmm1, QWORD [r10 + 16]
-    addsd xmm0, xmm1
+    addsd xmm14, xmm15
 
-    sub rsp, 8
-    movsd [rsp+8], xmm0
-    movsd xmm0, xmm1
-    call print_double_subroutine
-    movsd xmm0, [rsp+8]
-    add rsp, 8
+    ; xmm0 = xmm0 + xmm10 + xmm12 + xmm14
+    addsd xmm0, xmm10
+    addsd xmm12, xmm14
+    addsd xmm0, xmm12
 
-    ; we can calculate the destination address using r10 as its no longer needed at this point
-    sub r10, rcx    ; go back to the middle row of the current window
-    sub r10, rdi    ; subtract the base pointer of the source array
-    add r10, rsi    ; add the base pointer of the dest array
-    add r10, 8      ; need the center element, not the leftmost element
-    movsd [r10], xmm0   ; place result in dest register
-
-    push rdi
-    call print_newline
-    pop rdi
+    ; store data in destination register, xmm0 is the total sum for this window
+    movsd [rsi], xmm0
+    
+    add rdi, 8  ; next window start
+    add rsi, 8  ; next destination
 
     ; condition for next x
     add r9, 8
     cmp r9, rcx
     jl inner_loop
 
-    push rdi
-    call print_newline
-    pop rdi
-
     ; after every row, advance the array pointer to the next one
-    add rdi, rcx
+    add rdi, 16 ; next row of source
+    add rsi, 16 ; next row of dest
 
     ; condition for next y
     inc r8
@@ -255,102 +179,10 @@ apply_sobel:
 
     ; exceptional condition: invalid image size
   invalid_image_size:
+
+    ; print some kind of error message
+
     jmp clean_and_return ; jump to regular cleanup routine
-
-  print_newline:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 96
-
-    mov   [rsp+8],  rdi
-    mov   [rsp+16], rsi
-    mov   [rsp+24], rdx
-    mov   [rsp+32], rcx
-    mov   [rsp+40], r8
-    mov   [rsp+48], r9
-    mov   [rsp+56], r10
-    mov   [rsp+64], r11
-    movsd [rsp+72], xmm0
-
-    mov rdi, print_ln
-    call printf
-
-    mov   rdi,  [rsp+8]
-    mov   rsi,  [rsp+16]
-    mov   rdx,  [rsp+24]
-    mov   rcx,  [rsp+32]
-    mov   r8,   [rsp+40]
-    mov   r9,   [rsp+48]
-    mov   r10,  [rsp+56]
-    mov   r11,  [rsp+64]
-    movsd xmm0, [rsp+72]
-
-    add rsp, 96
-    pop rbp
-    ret
-
-  print_double_subroutine:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 96
-
-    mov   [rsp+8],  rdi
-    mov   [rsp+16], rsi
-    mov   [rsp+24], rdx
-    mov   [rsp+32], rcx
-    mov   [rsp+40], r8
-    mov   [rsp+48], r9
-    mov   [rsp+56], r10
-    mov   [rsp+64], r11
-    movsd [rsp+72], xmm0
-
-    mov rdi, print_double
-    call printf
-
-    mov   rdi,  [rsp+8]
-    mov   rsi,  [rsp+16]
-    mov   rdx,  [rsp+24]
-    mov   rcx,  [rsp+32]
-    mov   r8,   [rsp+40]
-    mov   r9,   [rsp+48]
-    mov   r10,  [rsp+56]
-    mov   r11,  [rsp+64]
-    movsd xmm0, [rsp+72]
-
-    add rsp, 96
-    pop rbp
-    ret
-
-  print_pointer_subroutine:
-    push rbp
-    mov rbp, rsp
-    sub rsp, 80
-
-    mov [rsp+8],  rdi
-    mov [rsp+16], rsi
-    mov [rsp+24], rdx
-    mov [rsp+32], rcx
-    mov [rsp+40], r8
-    mov [rsp+48], r9
-    mov [rsp+56], r10
-    mov [rsp+64], r11
-
-    mov rdi, print_pointer
-    mov rsi, [rsp+8]
-    call printf
-
-    mov rdi, [rsp+8]
-    mov rsi, [rsp+16]
-    mov rdx, [rsp+24]
-    mov rcx, [rsp+32]
-    mov r8,  [rsp+40]
-    mov r9,  [rsp+48]
-    mov r10, [rsp+56]
-    mov r11, [rsp+64]
-
-    add rsp, 80
-    pop rbp
-    ret
 
 ;
 ; ... you might be an assembly programmer

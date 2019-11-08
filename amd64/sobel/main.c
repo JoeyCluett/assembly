@@ -2,11 +2,42 @@
 
 void apply_sobel(double* src, double* dest, int h, int w);
 
-double src[16] = {
+#define ARR_SIZE 25
+
+/*
+double src[ARR_SIZE] = { // 16
     4.0, 4.0, 4.0, 4.0,
     3.0, 3.0, 3.0, 3.0,
     2.0, 2.0, 2.0, 2.0,
     1.0, 1.0, 1.0, 1.0
+};
+*/
+
+/*
+double src[ARR_SIZE] = { // 20
+    4.0, 3.0, 2.0, 1.0, 0.0,
+    4.0, 3.0, 2.0, 1.0, 0.0,
+    4.0, 3.0, 2.0, 1.0, 0.0,
+    4.0, 3.0, 2.0, 1.0, 0.0
+};
+*/
+
+/*
+double src[ARR_SIZE] = { // 25
+    4.0, 3.0, 2.0, 1.0, 0.0,
+    4.0, 3.0, 2.0, 1.0, 0.0,
+    4.0, 3.0, 2.0, 1.0, 0.0,
+    4.0, 3.0, 2.0, 1.0, 0.0,
+    4.0, 3.0, 2.0, 1.0, 0.0
+};
+*/
+
+double src[ARR_SIZE] = { // 25
+    4.0, 4.0, 4.0, 4.0, 4.0,
+    3.0, 3.0, 3.0, 3.0, 3.0,
+    2.0, 2.0, 2.0, 2.0, 2.0,
+    1.0, 1.0, 1.0, 1.0, 1.0,
+    0.0, 0.0, 0.0, 0.0, 0.0
 };
 
 /*
@@ -22,18 +53,33 @@ double src[16] = {
         ]
 */
 
-double dest[16] = {0.0};
+double dest[ARR_SIZE] = {0.0};
 
 int main(int argc, char* argv[]) {
 
-    printf("Addr of array: %p\n", (void*)src);
-    apply_sobel(src, dest, 4, 4);
-
-    puts("");
+    int h = 5;
+    int w = 5;
 
     int j;
-    for(j = 0; j < 16; j += 4) {
-        printf("%lf %lf %lf %lf\n", dest[j+0], dest[j+1], dest[j+2], dest[j+3]);
+    for(j = 0; j < ARR_SIZE; j += w) {
+
+        int k;
+        for(k = 0; k < w; k++)
+            printf("%-10lf ", src[j+k]);
+        puts("");
+
+    }
+    
+    apply_sobel(src, dest, h, w);
+    puts("");
+
+    for(j = 0; j < ARR_SIZE; j += w) {
+
+        int k;
+        for(k = 0; k < w; k++)
+            printf("%-10lf ", dest[j+k]);
+        puts("");
+
     }
 
     return 0;
