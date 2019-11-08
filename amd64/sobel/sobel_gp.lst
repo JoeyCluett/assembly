@@ -1,4 +1,4 @@
-     1                                 %line 1+1 main.asm
+     1                                 %line 1+1 sobel_gp/main.asm
      2                                 
      3                                 
      4                                 
@@ -21,7 +21,7 @@
     21                                 
     22                                 [extern printf]
     23                                 
-    24                                 [global apply_sobel]
+    24                                 [global apply_gp_sobel]
     25                                 
     26                                 
     27                                 [section .data]
@@ -41,7 +41,7 @@
     41 00000040 000000000000F03F        sobel8: dq 1.0
     42                                 
     43                                 [section .text]
-    44                                 apply_sobel:
+    44                                 apply_gp_sobel:
     45                                 
     46 00000000 55                      push rbp
     47 00000001 4889E5                  mov rbp, rsp
@@ -194,3 +194,8 @@
    194                                 
    195                                 
    196                                 
+   197                                 
+   198                                 
+   199                                 
+   200                                 
+   201                                 

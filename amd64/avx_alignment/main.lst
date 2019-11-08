@@ -1,0 +1,199 @@
+     1                                 %line 1+1 main.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 
+     6                                 
+     7                                 [extern printf]
+     8                                 [extern puts]
+     9                                 
+    10                                 [global poke_avx_alignment]
+    11                                 
+    12                                 
+    13                                 [section .data]
+    14                                 
+    15 00000000 000000000000F03F00-     sample_data: dq 1.0, 2.0, 3.0, 4.0
+    16 00000000 000000000000400000-
+    17 00000000 000000000840000000-
+    18 00000000 0000001040         
+    19                                 
+    20 00000020 256C662000              print_double_fmt: db "%lf ", 0x0
+    21 00000025 25702000                print_pointer_fmt: db "%p ", 0x0
+    22 00000029 00                      print_newline_fmt: db 0x0
+    23 0000002A 5074723A202531306C-     print_ptr_double_fmt: db "Ptr: %10ld -> %10lf", 0xA, 0x0
+    24 0000002A 64202D3E202531306C-
+    25 0000002A 660A00             
+    26                                 
+    27                                 [section .text]
+    28                                 poke_avx_alignment:
+    29                                 
+    30 00000000 55                      push rbp
+    31 00000001 4889E5                  mov rbp, rsp
+    32 00000004 4883EC40                sub rsp, 64
+    33                                 
+    34                                 
+    35 00000008 C5FD100C25[00000000]      vmovupd ymm1, [sample_data]
+    36 00000011 C5FD110C24              vmovupd [rsp+0], ymm1
+    37                                 
+    38                                 
+    39 00000016 F20F100425[00000000]      movsd xmm0, QWORD [sample_data]
+    40 0000001F 48C7C7[00000000]        mov rdi, sample_data
+    41 00000026 E8B4000000              call print_ptr_double_subroutine
+    42                                 
+    43                                 
+    44 0000002B F20F100424              movsd xmm0, QWORD [rsp+0]
+    45 00000030 4889E7                  mov rdi, rsp
+    46 00000033 4883C700                add rdi, 0
+    47 00000037 E8A3000000              call print_ptr_double_subroutine
+    48                                 
+    49 0000003C F20F10442408            movsd xmm0, QWORD [rsp+8]
+    50 00000042 4889E7                  mov rdi, rsp
+    51 00000045 4883C708                add rdi, 8
+    52 00000049 E891000000              call print_ptr_double_subroutine
+    53                                 
+    54 0000004E F20F10442410            movsd xmm0, QWORD [rsp+16]
+    55 00000054 4889E7                  mov rdi, rsp
+    56 00000057 4883C710                add rdi, 16
+    57 0000005B E87F000000              call print_ptr_double_subroutine
+    58                                 
+    59 00000060 F20F10442418            movsd xmm0, QWORD [rsp+24]
+    60 00000066 4889E7                  mov rdi, rsp
+    61 00000069 4883C718                add rdi, 24
+    62 0000006D E86D000000              call print_ptr_double_subroutine
+    63                                 
+    64                                 
+    65                                  clean_and_return:
+    66                                 
+    67 00000072 4883C440                add rsp, 64
+    68 00000076 5D                      pop rbp
+    69 00000077 C3                      ret
+    70                                 
+    71                                  invalid_image_size:
+    72                                 
+    73 00000078 EBF6                    jmp clean_and_return
+    74                                 
+    75                                  print_newline_subroutine:
+    76 0000007A 55                      push rbp
+    77 0000007B 4889E5                  mov rbp, rsp
+    78 0000007E 4883EC50                sub rsp, 80
+    79                                 
+    80 00000082 48897C2408              mov [rsp+8], rdi
+    81 00000087 4889742410              mov [rsp+16], rsi
+    82 0000008C 4889542418              mov [rsp+24], rdx
+    83 00000091 48894C2420              mov [rsp+32], rcx
+    84 00000096 4C89442428              mov [rsp+40], r8
+    85 0000009B 4C894C2430              mov [rsp+48], r9
+    86 000000A0 4C89542438              mov [rsp+56], r10
+    87 000000A5 4C895C2440              mov [rsp+64], r11
+    88                                 
+    89 000000AA 48C7C7[00000000]        mov rdi, print_newline_fmt
+    90 000000B1 E8(F6FFFFFF)            call puts
+    91                                 
+    92 000000B6 488B7C2408              mov rdi, [rsp+8]
+    93 000000BB 488B742410              mov rsi, [rsp+16]
+    94 000000C0 488B542418              mov rdx, [rsp+24]
+    95 000000C5 488B4C2420              mov rcx, [rsp+32]
+    96 000000CA 4C8B442428              mov r8, [rsp+40]
+    97 000000CF 4C8B4C2430              mov r9, [rsp+48]
+    98 000000D4 4C8B542438              mov r10, [rsp+56]
+    99 000000D9 4C8B5C2440              mov r11, [rsp+64]
+   100                                 
+   101 000000DE 4883C450                add rsp, 80
+   102 000000E2 5D                      pop rbp
+   103 000000E3 C3                      ret
+   104                                 
+   105                                  print_ptr_double_subroutine:
+   106 000000E4 55                      push rbp
+   107 000000E5 4889E5                  mov rbp, rsp
+   108 000000E8 4883EC50                sub rsp, 80
+   109                                 
+   110 000000EC 48897C2408              mov [rsp+8], rdi
+   111 000000F1 4889742410              mov [rsp+16], rsi
+   112 000000F6 4889542418              mov [rsp+24], rdx
+   113 000000FB 48894C2420              mov [rsp+32], rcx
+   114 00000100 4C89442428              mov [rsp+40], r8
+   115 00000105 4C894C2430              mov [rsp+48], r9
+   116 0000010A 4C89542438              mov [rsp+56], r10
+   117 0000010F 4C895C2440              mov [rsp+64], r11
+   118 00000114 F20F11442448            movsd [rsp+72], xmm0
+   119                                 
+   120 0000011A 48C7C7[00000000]        mov rdi, print_ptr_double_fmt
+   121 00000121 488B742408              mov rsi, [rsp+8]
+   122 00000126 E8(F6FFFFFF)            call printf
+   123                                 
+   124 0000012B 488B7C2408              mov rdi, [rsp+8]
+   125 00000130 488B742410              mov rsi, [rsp+16]
+   126 00000135 488B542418              mov rdx, [rsp+24]
+   127 0000013A 488B4C2420              mov rcx, [rsp+32]
+   128 0000013F 4C8B442428              mov r8, [rsp+40]
+   129 00000144 4C8B4C2430              mov r9, [rsp+48]
+   130 00000149 4C8B542438              mov r10, [rsp+56]
+   131 0000014E 4C8B5C2440              mov r11, [rsp+64]
+   132 00000153 F20F10442448            movsd xmm0, [rsp+72]
+   133                                 
+   134 00000159 4883C450                add rsp, 80
+   135 0000015D 5D                      pop rbp
+   136 0000015E C3                      ret
+   137                                 
+   138                                  print_pointer_subroutine:
+   139 0000015F 55                      push rbp
+   140 00000160 4889E5                  mov rbp, rsp
+   141 00000163 4883EC50                sub rsp, 80
+   142                                 
+   143 00000167 48897C2408              mov [rsp+8], rdi
+   144 0000016C 4889742410              mov [rsp+16], rsi
+   145 00000171 4889542418              mov [rsp+24], rdx
+   146 00000176 48894C2420              mov [rsp+32], rcx
+   147 0000017B 4C89442428              mov [rsp+40], r8
+   148 00000180 4C894C2430              mov [rsp+48], r9
+   149 00000185 4C89542438              mov [rsp+56], r10
+   150 0000018A 4C895C2440              mov [rsp+64], r11
+   151                                 
+   152 0000018F 48C7C7[00000000]        mov rdi, print_pointer_fmt
+   153 00000196 488B742408              mov rsi, [rsp+8]
+   154 0000019B E8(F6FFFFFF)            call printf
+   155                                 
+   156 000001A0 488B7C2408              mov rdi, [rsp+8]
+   157 000001A5 488B742410              mov rsi, [rsp+16]
+   158 000001AA 488B542418              mov rdx, [rsp+24]
+   159 000001AF 488B4C2420              mov rcx, [rsp+32]
+   160 000001B4 4C8B442428              mov r8, [rsp+40]
+   161 000001B9 4C8B4C2430              mov r9, [rsp+48]
+   162 000001BE 4C8B542438              mov r10, [rsp+56]
+   163 000001C3 4C8B5C2440              mov r11, [rsp+64]
+   164                                 
+   165 000001C8 4883C450                add rsp, 80
+   166 000001CC 5D                      pop rbp
+   167 000001CD C3                      ret
+   168                                 
+   169                                  print_double_subroutine:
+   170 000001CE 55                      push rbp
+   171 000001CF 4889E5                  mov rbp, rsp
+   172 000001D2 4883EC60                sub rsp, 96
+   173                                 
+   174 000001D6 48897C2408              mov [rsp+8], rdi
+   175 000001DB 4889742410              mov [rsp+16], rsi
+   176 000001E0 4889542418              mov [rsp+24], rdx
+   177 000001E5 48894C2420              mov [rsp+32], rcx
+   178 000001EA 4C89442428              mov [rsp+40], r8
+   179 000001EF 4C894C2430              mov [rsp+48], r9
+   180 000001F4 4C89542438              mov [rsp+56], r10
+   181 000001F9 4C895C2440              mov [rsp+64], r11
+   182 000001FE F20F11442448            movsd [rsp+72], xmm0
+   183                                 
+   184 00000204 48C7C7[00000000]        mov rdi, print_double_fmt
+   185 0000020B E8(F6FFFFFF)            call printf
+   186                                 
+   187 00000210 488B7C2408              mov rdi, [rsp+8]
+   188 00000215 488B742410              mov rsi, [rsp+16]
+   189 0000021A 488B542418              mov rdx, [rsp+24]
+   190 0000021F 488B4C2420              mov rcx, [rsp+32]
+   191 00000224 4C8B442428              mov r8, [rsp+40]
+   192 00000229 4C8B4C2430              mov r9, [rsp+48]
+   193 0000022E 4C8B542438              mov r10, [rsp+56]
+   194 00000233 4C8B5C2440              mov r11, [rsp+64]
+   195 00000238 F20F10442448            movsd xmm0, [rsp+72]
+   196                                 
+   197 0000023E 4883C460                add rsp, 96
+   198 00000242 5D                      pop rbp
+   199 00000243 C3                      ret

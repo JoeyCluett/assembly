@@ -1,0 +1,196 @@
+     1                                 %line 1+1 main.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 
+     6                                 
+     7                                 
+     8                                 
+     9                                 
+    10                                 
+    11                                 
+    12                                 
+    13                                 
+    14                                 
+    15                                 
+    16                                 
+    17                                 
+    18                                 
+    19                                 
+    20                                 
+    21                                 
+    22                                 [extern printf]
+    23                                 
+    24                                 [global apply_gp_sobel]
+    25                                 
+    26                                 
+    27                                 [section .data]
+    28                                 
+    29                                 
+    30                                 
+    31                                 
+    32                                 
+    33 00000000 000000000000F0BF        sobel0: dq -1.0
+    34 00000008 00000000000000C0        sobel1: dq -2.0
+    35 00000010 000000000000F0BF        sobel2: dq -1.0
+    36 00000018 0000000000000000        sobel3: dq 0.0
+    37 00000020 0000000000000000        sobel4: dq 0.0
+    38 00000028 0000000000000000        sobel5: dq 0.0
+    39 00000030 000000000000F03F        sobel6: dq 1.0
+    40 00000038 0000000000000040        sobel7: dq 2.0
+    41 00000040 000000000000F03F        sobel8: dq 1.0
+    42                                 
+    43                                 [section .text]
+    44                                 apply_gp_sobel:
+    45                                 
+    46 00000000 55                      push rbp
+    47 00000001 4889E5                  mov rbp, rsp
+    48 00000004 4883EC48                sub rsp, 72
+    49                                 
+    50                                 
+    51                                 
+    52                                 
+    53                                 
+    54                                 
+    55                                 
+    56                                 
+    57                                 
+    58                                 
+    59 00000008 4883FA03                cmp rdx, 3
+    60 0000000C 0F8C4C010000            jl clean_and_return
+    61 00000012 4883F903                cmp rcx, 3
+    62 00000016 0F8C42010000            jl clean_and_return
+    63                                 
+    64                                 
+    65                                 
+    66 0000001C 4883EA02                sub rdx, 2
+    67 00000020 4883E902                sub rcx, 2
+    68 00000024 48C1E103                shl rcx, 3
+    69                                 
+    70                                 
+    71 00000028 4801CE                  add rsi, rcx
+    72 0000002B 4883C618                add rsi, 24
+    73                                 
+    74 0000002F 4D31C0                  xor r8, r8
+    75                                 
+    76                                 
+    77                                  outer_loop:
+    78                                 
+    79 00000032 4D31C9                  xor r9, r9
+    80                                 
+    81                                  inner_loop:
+    82                                 
+    83                                 
+    84                                 
+    85                                 
+    86                                 
+    87                                 
+    88 00000035 F20F5CC0                subsd xmm0, xmm0
+    89                                 
+    90                                 
+    91 00000039 4989FA                  mov r10, rdi
+    92                                 
+    93 0000003C F2450F5CD2              subsd xmm10, xmm10
+    94 00000041 F2450F5CDB              subsd xmm11, xmm11
+    95                                 
+    96 00000046 F20F100C25[00000000]      movsd xmm1, QWORD [sobel0]
+    97 0000004F F2410F590A              mulsd xmm1, QWORD [r10 + 0]
+    98 00000054 F2440F58D1              addsd xmm10, xmm1
+    99                                 
+   100 00000059 F20F101425[00000000]      movsd xmm2, QWORD [sobel1]
+   101 00000062 F2410F595208            mulsd xmm2, QWORD [r10 + 8]
+   102 00000068 F2440F58DA              addsd xmm11, xmm2
+   103                                 
+   104 0000006D F20F101C25[00000000]      movsd xmm3, QWORD [sobel2]
+   105 00000076 F2410F595A10            mulsd xmm3, QWORD [r10 + 16]
+   106 0000007C F20F58C3                addsd xmm0, xmm3
+   107                                 
+   108 00000080 F2450F58D3              addsd xmm10, xmm11
+   109                                 
+   110 00000085 4901CA                  add r10, rcx
+   111 00000088 4983C210                add r10, 16
+   112                                 
+   113 0000008C F2450F5CE4              subsd xmm12, xmm12
+   114 00000091 F2450F5CED              subsd xmm13, xmm13
+   115                                 
+   116 00000096 F20F102425[00000000]      movsd xmm4, QWORD [sobel3]
+   117 0000009F F2410F5922              mulsd xmm4, QWORD [r10 + 0]
+   118 000000A4 F2440F58E4              addsd xmm12, xmm4
+   119                                 
+   120 000000A9 F20F102C25[00000000]      movsd xmm5, QWORD [sobel4]
+   121 000000B2 F2410F596A08            mulsd xmm5, QWORD [r10 + 8]
+   122 000000B8 F2440F58ED              addsd xmm13, xmm5
+   123                                 
+   124 000000BD F20F103425[00000000]      movsd xmm6, QWORD [sobel5]
+   125 000000C6 F2410F597210            mulsd xmm6, QWORD [r10 + 16]
+   126 000000CC F20F58C6                addsd xmm0, xmm6
+   127                                 
+   128 000000D0 F2450F58E5              addsd xmm12, xmm13
+   129                                 
+   130 000000D5 4901CA                  add r10, rcx
+   131 000000D8 4983C210                add r10, 16
+   132                                 
+   133 000000DC F2450F5CF6              subsd xmm14, xmm14
+   134 000000E1 F2450F5CFF              subsd xmm15, xmm15
+   135                                 
+   136 000000E6 F20F103C25[00000000]      movsd xmm7, QWORD [sobel6]
+   137 000000EF F2410F593A              mulsd xmm7, QWORD [r10 + 0]
+   138 000000F4 F2440F58F7              addsd xmm14, xmm7
+   139                                 
+   140 000000F9 F2440F100425[000000-     movsd xmm8, QWORD [sobel7]
+   141 000000F9 00]                
+   142 00000103 F2450F594208            mulsd xmm8, QWORD [r10 + 8]
+   143 00000109 F2450F58F8              addsd xmm15, xmm8
+   144                                 
+   145 0000010E F2440F100C25[000000-     movsd xmm9, QWORD [sobel8]
+   146 0000010E 00]                
+   147 00000118 F2450F594A10            mulsd xmm9, QWORD [r10 + 16]
+   148 0000011E F2410F58C1              addsd xmm0, xmm9
+   149                                 
+   150 00000123 F2450F58F7              addsd xmm14, xmm15
+   151                                 
+   152                                 
+   153 00000128 F2410F58C2              addsd xmm0, xmm10
+   154 0000012D F2450F58E6              addsd xmm12, xmm14
+   155 00000132 F2410F58C4              addsd xmm0, xmm12
+   156                                 
+   157                                 
+   158 00000137 F20F1106                movsd [rsi], xmm0
+   159                                 
+   160 0000013B 4883C708                add rdi, 8
+   161 0000013F 4883C608                add rsi, 8
+   162                                 
+   163                                 
+   164 00000143 4983C108                add r9, 8
+   165 00000147 4939C9                  cmp r9, rcx
+   166 0000014A 0F8CDFFEFFFF            jl inner_loop
+   167                                 
+   168                                 
+   169 00000150 4883C710                add rdi, 16
+   170 00000154 4883C610                add rsi, 16
+   171                                 
+   172                                 
+   173 00000158 49FFC0                  inc r8
+   174 0000015B 4C39C2                  cmp rdx, r8
+   175 0000015E 0F85C8FEFFFF            jne outer_loop
+   176                                 
+   177                                  clean_and_return:
+   178                                 
+   179 00000164 4883C448                add rsp, 72
+   180 00000168 5D                      pop rbp
+   181 00000169 C3                      ret
+   182                                 
+   183                                 
+   184                                  invalid_image_size:
+   185                                 
+   186                                 
+   187                                 
+   188 0000016A EBF6                    jmp clean_and_return
+   189                                 
+   190                                 
+   191                                 
+   192                                 
+   193                                 
+   194                                 
+   195                                 
+   196                                 
