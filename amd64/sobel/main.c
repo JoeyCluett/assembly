@@ -60,7 +60,6 @@ int main(int argc, char* argv[]) {
 
     start_time = get_timestamp();
     for(iters = 0; iters < TOTAL_ITERS; iters++) {
-        //reset_dest();
         sobel(src, dest, 4, 4, SOBEL_GENERAL_PURPOSE);
         //apply_gp_sobel(src, dest, 4, 4);
     }
@@ -69,9 +68,9 @@ int main(int argc, char* argv[]) {
 
     start_time = get_timestamp();
     for(iters = 0; iters < TOTAL_ITERS; iters++) {
-        //reset_dest();
         sobel(src, dest, 4, 4, SOBEL_SIMD_OFFSET_1);
         //apply_simd_sobel(src, dest, 4, 4);
+        //sobel(src, dest, 4, 4, SOBEL_GENERAL_PURPOSE);
     }
     total_time = get_timestamp() - start_time;
     printf("Total time: %12ld microseconds (SIMD Sobel)\n", total_time);
