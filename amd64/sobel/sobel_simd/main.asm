@@ -98,9 +98,6 @@ apply_simd_sobel:
     ; HERE BE DRAGONS
     ; ========================================
 
-    ; zero out the cumulative sum
-    subsd xmm6, xmm6
-
     ; preserve the global window pointer
     mov r10, rdi    ; modify a copy of the current window pointer
 
@@ -166,8 +163,8 @@ apply_simd_sobel:
     movsd [rsi],   xmm8
     movsd [rsi+8], xmm11
 
-    add rdi, 8  ; next window start
-    add rsi, 8  ; next destination
+    add rdi, 16  ; next window start
+    add rsi, 16  ; next destination
 
     ; condition for next x
     add r9, 8
@@ -187,6 +184,7 @@ apply_simd_sobel:
     ; destroy stack frame
     add rsp, 72 ; deallocate the stack space we requested
     pop rbp     ; remove this part of the stack trace
+    mov rax, 1  ; return 1 (sobel simd)
     ret         ; jump back to caller
 
     ; exceptional condition: invalid image size

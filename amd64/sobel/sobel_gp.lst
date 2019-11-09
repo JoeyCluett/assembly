@@ -178,15 +178,15 @@
    178                                 
    179 00000164 4883C448                add rsp, 72
    180 00000168 5D                      pop rbp
-   181 00000169 C3                      ret
-   182                                 
+   181 00000169 4831C0                  xor rax, rax
+   182 0000016C C3                      ret
    183                                 
-   184                                  invalid_image_size:
-   185                                 
+   184                                 
+   185                                  invalid_image_size:
    186                                 
    187                                 
-   188 0000016A EBF6                    jmp clean_and_return
-   189                                 
+   188                                 
+   189 0000016D EBF3                    jmp clean_and_return
    190                                 
    191                                 
    192                                 
@@ -197,3 +197,4 @@
    197                                 
    198                                 
    199                                 
+   200                                 

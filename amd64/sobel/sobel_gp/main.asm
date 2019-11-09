@@ -175,6 +175,7 @@ apply_gp_sobel:
     ; destroy stack frame
     add rsp, 72 ; deallocate the stack space we requested
     pop rbp     ; remove this part of the stack trace
+    xor rax, rax  ; return 0
     ret         ; jump back to caller
 
     ; exceptional condition: invalid image size
