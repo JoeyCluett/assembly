@@ -28,7 +28,7 @@ section .data
     ;sobelr1:    dq  0.0,  0.0,  0.0
     ;sobelr2:    dq  1.0,  2.0,  1.0
 
-    ; create constants that can be used instead if the add/index instructions
+    ; create constants that can be used instead of the add/index instructions
     sobel0: dq -1.0
     sobel1: dq -2.0
     sobel2: dq -1.0
@@ -106,23 +106,21 @@ apply_gp_sobel:
     mulsd xmm9, xmm0
     mulsd xmm10, xmm1
     mulsd xmm11, xmm2
-
     addsd xmm9, xmm10
-    addsd xmm9, xmm11
+    addsd xmm9, xmm11 ; break the dependency chain for top row
     addsd xmm15, xmm9
     
     add r10, rcx  ; jump to the next row in the src array
     add r10, 16
-
+    
     movsd xmm12, QWORD [r10]
     movsd xmm13, QWORD [r10 + 8]
     movsd xmm14, QWORD [r10 + 16]
     mulsd xmm12, xmm3
     mulsd xmm13, xmm4
     mulsd xmm14, xmm5
-
     addsd xmm12, xmm13
-    addsd xmm12, xmm14
+    addsd xmm12, xmm14 ; try to break dependency chain for middle row
     addsd xmm15, xmm12
 
     add r10, rcx   ; jump to the next row in the src array
@@ -130,11 +128,10 @@ apply_gp_sobel:
 
     movsd xmm9,  QWORD [r10]
     movsd xmm10, QWORD [r10 + 8]
-    movsd xmm11, QWORD [r10 + 16]
-    mulsd xmm9, xmm6
+    movsd xmm11, QWORD [r10 + 16]    
+    mulsd xmm9,  xmm6
     mulsd xmm10, xmm7
     mulsd xmm11, xmm8
-
     addsd xmm9,  xmm10
     addsd xmm9,  xmm11
     addsd xmm15, xmm9

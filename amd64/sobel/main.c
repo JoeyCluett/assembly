@@ -7,16 +7,29 @@
 //  1 : algorithm attempted to perform SIMDx4 execution but was
 //      unable to due to unavailable processor support
 int sobel(volatile double* src, volatile double* dest, int h, int w, int flag);
+int apply_gp_sobel(volatile double* src, volatile double* dest, int h, int w);
 void init_sobel(void);
 
-#define ARR_SIZE 288
-volatile int h = 12;
+#define ARR_SIZE 576
+volatile int h = 24;
 volatile int w = 24;
 
 // this needs to be aligned because the SIMD routine requires aligned memory fetches
 // i know its a lot of work on top of using raw asm routines but thats life sometimes y'know?
 volatile double __attribute__((aligned(32)))
         src[ARR_SIZE+1] = {
+    4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0,
+    3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0,
+    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0,
+    3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0,
+    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0,
+    3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0,
+    2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
     4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0,
     3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0,
     2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
@@ -76,41 +89,32 @@ int sobel_c(volatile double* src, volatile double* dest, int h, int w);
 
 int main(int argc, char* argv[]) {
 
-    // asm routine builds up LUT for different ways of solving
+    // asm routine builds up LUT for efficient lookups
     init_sobel();
 
     int iters = 0;
     unsigned long int start_time, total_time;
     int r;
 
-    const int TOTAL_ITERS = 1000000;
+    const int TOTAL_ITERS = 2000000;
 
     int i;
-    for(i = 0; i < 10; i++) {
+    for(i = 0; i < 3; i++) {
 
     start_time = get_timestamp();
     for(iters = 0; iters < TOTAL_ITERS; iters++) {
-        r = sobel(src, dest, h, w, SOBEL_GENERAL_PURPOSE);
+        //r = sobel(src, dest, h, w, SOBEL_GENERAL_PURPOSE);
+        r = apply_gp_sobel(src, dest, h, w);
     }
     total_time = get_timestamp() - start_time;
     printf("Total time: %12ld microseconds (GP Sobel)\n", total_time);
     //print_result(r);
     //print_dest();
     }
-/*
-    start_time = get_timestamp();
-    for(iters = 0; iters < TOTAL_ITERS; iters++) {
-        r = sobel(src, dest, h, w, SOBEL_SIMD_OFFSET_1);
-    }
-    total_time = get_timestamp() - start_time;
-    printf("\n\nTotal time: %12ld microseconds (SIMD Sobel)\n", total_time);
-    //print_result(r);
-    print_dest();
-*/
 
     puts("");
 
-    for(i = 0; i < 10; i++) {
+    for(i = 0; i < 3; i++) {
 
     start_time = get_timestamp();
     for(iters = 0; iters < TOTAL_ITERS; iters++) {

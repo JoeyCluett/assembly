@@ -108,72 +108,72 @@
    108 000000A0 F2440F59C8              mulsd xmm9, xmm0
    109 000000A5 F2440F59D1              mulsd xmm10, xmm1
    110 000000AA F2440F59DA              mulsd xmm11, xmm2
-   111                                 
-   112 000000AF F2450F58CA              addsd xmm9, xmm10
-   113 000000B4 F2450F58CB              addsd xmm9, xmm11
-   114 000000B9 F2450F58F9              addsd xmm15, xmm9
-   115                                 
-   116 000000BE 4901CA                  add r10, rcx
-   117 000000C1 4983C210                add r10, 16
-   118                                 
-   119 000000C5 F2450F1022              movsd xmm12, QWORD [r10]
-   120 000000CA F2450F106A08            movsd xmm13, QWORD [r10 + 8]
-   121 000000D0 F2450F107210            movsd xmm14, QWORD [r10 + 16]
-   122 000000D6 F2440F59E3              mulsd xmm12, xmm3
-   123 000000DB F2440F59EC              mulsd xmm13, xmm4
-   124 000000E0 F2440F59F5              mulsd xmm14, xmm5
-   125                                 
-   126 000000E5 F2450F58E5              addsd xmm12, xmm13
-   127 000000EA F2450F58E6              addsd xmm12, xmm14
-   128 000000EF F2450F58FC              addsd xmm15, xmm12
-   129                                 
-   130 000000F4 4901CA                  add r10, rcx
-   131 000000F7 4983C210                add r10, 16
-   132                                 
-   133 000000FB F2450F100A              movsd xmm9, QWORD [r10]
-   134 00000100 F2450F105208            movsd xmm10, QWORD [r10 + 8]
-   135 00000106 F2450F105A10            movsd xmm11, QWORD [r10 + 16]
-   136 0000010C F2440F59CE              mulsd xmm9, xmm6
-   137 00000111 F2440F59D7              mulsd xmm10, xmm7
-   138 00000116 F2450F59D8              mulsd xmm11, xmm8
-   139                                 
-   140 0000011B F2450F58CA              addsd xmm9, xmm10
-   141 00000120 F2450F58CB              addsd xmm9, xmm11
-   142 00000125 F2450F58F9              addsd xmm15, xmm9
+   111 000000AF F2450F58CA              addsd xmm9, xmm10
+   112 000000B4 F2450F58CB              addsd xmm9, xmm11
+   113 000000B9 F2450F58F9              addsd xmm15, xmm9
+   114                                 
+   115 000000BE 4901CA                  add r10, rcx
+   116 000000C1 4983C210                add r10, 16
+   117                                 
+   118 000000C5 F2450F1022              movsd xmm12, QWORD [r10]
+   119 000000CA F2450F106A08            movsd xmm13, QWORD [r10 + 8]
+   120 000000D0 F2450F107210            movsd xmm14, QWORD [r10 + 16]
+   121 000000D6 F2440F59E3              mulsd xmm12, xmm3
+   122 000000DB F2440F59EC              mulsd xmm13, xmm4
+   123 000000E0 F2440F59F5              mulsd xmm14, xmm5
+   124 000000E5 F2450F58E5              addsd xmm12, xmm13
+   125 000000EA F2450F58E6              addsd xmm12, xmm14
+   126 000000EF F2450F58FC              addsd xmm15, xmm12
+   127                                 
+   128 000000F4 4901CA                  add r10, rcx
+   129 000000F7 4983C210                add r10, 16
+   130                                 
+   131 000000FB F2450F100A              movsd xmm9, QWORD [r10]
+   132 00000100 F2450F105208            movsd xmm10, QWORD [r10 + 8]
+   133 00000106 F2450F105A10            movsd xmm11, QWORD [r10 + 16]
+   134 0000010C F2440F59CE              mulsd xmm9, xmm6
+   135 00000111 F2440F59D7              mulsd xmm10, xmm7
+   136 00000116 F2450F59D8              mulsd xmm11, xmm8
+   137 0000011B F2450F58CA              addsd xmm9, xmm10
+   138 00000120 F2450F58CB              addsd xmm9, xmm11
+   139 00000125 F2450F58F9              addsd xmm15, xmm9
+   140                                 
+   141                                 
+   142 0000012A F2440F113E              movsd [rsi], xmm15
    143                                 
-   144                                 
-   145 0000012A F2440F113E              movsd [rsi], xmm15
+   144 0000012F 4883C708                add rdi, 8
+   145 00000133 4883C608                add rsi, 8
    146                                 
-   147 0000012F 4883C708                add rdi, 8
-   148 00000133 4883C608                add rsi, 8
-   149                                 
-   150                                 
-   151 00000137 4983C108                add r9, 8
-   152 0000013B 4939C9                  cmp r9, rcx
-   153 0000013E 0F8C3DFFFFFF            jl inner_loop
-   154                                 
+   147                                 
+   148 00000137 4983C108                add r9, 8
+   149 0000013B 4939C9                  cmp r9, rcx
+   150 0000013E 0F8C3DFFFFFF            jl inner_loop
+   151                                 
+   152                                 
+   153 00000144 4883C710                add rdi, 16
+   154 00000148 4883C610                add rsi, 16
    155                                 
-   156 00000144 4883C710                add rdi, 16
-   157 00000148 4883C610                add rsi, 16
-   158                                 
-   159                                 
-   160 0000014C 49FFC0                  inc r8
-   161 0000014F 4C39C2                  cmp rdx, r8
-   162 00000152 0F8526FFFFFF            jne outer_loop
-   163                                 
-   164                                  clean_and_return:
-   165                                 
-   166 00000158 4883C448                add rsp, 72
-   167 0000015C 5D                      pop rbp
-   168 0000015D 4831C0                  xor rax, rax
-   169 00000160 C3                      ret
+   156                                 
+   157 0000014C 49FFC0                  inc r8
+   158 0000014F 4C39C2                  cmp rdx, r8
+   159 00000152 0F8526FFFFFF            jne outer_loop
+   160                                 
+   161                                  clean_and_return:
+   162                                 
+   163 00000158 4883C448                add rsp, 72
+   164 0000015C 5D                      pop rbp
+   165 0000015D 4831C0                  xor rax, rax
+   166 00000160 C3                      ret
+   167                                 
+   168                                 
+   169                                  invalid_image_size:
    170                                 
    171                                 
-   172                                  invalid_image_size:
-   173                                 
+   172                                 
+   173 00000161 EBF3                    jmp clean_and_return
    174                                 
    175                                 
-   176 00000161 EBF3                    jmp clean_and_return
+   176                                 
    177                                 
    178                                 
    179                                 
@@ -182,6 +182,3 @@
    182                                 
    183                                 
    184                                 
-   185                                 
-   186                                 
-   187                                 
