@@ -6,14 +6,17 @@
 extern printf
 extern apply_gp_sobel
 extern apply_simd_sobel ; a 4x SIMD routine. requries support for certain avx extensions
+
 global sobel
+global init_sobel
 
 section .data
-    ;sobel_jump_lut: dq apply_gp_sobel, apply_simd_sobel
-    sobel_jump_lut: dq apply_gp_sobel, test_apply_simd
-
     normal_ret_val:  dq 0x00000000
     simd_no_support: dq 0x00000001
+
+section .bss
+    align 32
+    sobel_jump_lut: resb 16 ; enough space for two pointers
 
 section .text
 sobel:
@@ -39,38 +42,40 @@ sobel:
     pop rbp
     ret
 
-  ; when trying to use the SIMD routine, make sure the CPU suports it first
-  test_apply_simd:
-
-    ; stack frame
+init_sobel:
     push rbp
     mov rbp, rsp
 
-    push rdx  ; save these as they will be overwritten by cpuid
-    push rcx  ; ...
+    push rax ; save these as they will be overwritten by cpuid
+    push rbx ; ...
+    push rcx ; ...
+    push rdx ; ...
 
-    mov eax, 7  ; prep cpuid to get extended cpu features
+    ; fill all LUT entries with GP solution solver
+    mov rax, apply_gp_sobel ; load into RAX because mem->mem operations arent supported (can you imagine?)
+    mov [sobel_jump_lut],   rax
+    mov [sobel_jump_lut+8], rax
+
+    mov eax, 0x07  ; prep cpuid to get extended cpu features
     mov ecx, 0  ; ...
     cpuid
 
-    pop rcx ; restore the overwritten regisers that we saved
-    pop rdx ; ...
-
     ; cpu information will overwrite ebx, ecx, edx
     ; avx2 flag is ebx[5]
-    and ebx, DWORD 0x0010
-    cmp ebx, 0x0010
-    jne use_gp_sobel
+    and ebx, DWORD 0x0020
+    cmp ebx, 0x0020
+    jne end_init_sobel
 
-    ; the avx2 bit is true, use the optimized version
-    call apply_simd_sobel
+    ; place the SIMD routine in the LUT
+    mov rax, apply_simd_sobel
+    mov [sobel_jump_lut + 8], rax
 
-    pop rbp
-    ret
+  end_init_sobel:
 
-  use_gp_sobel:
-    ; the avx2 bit is false, use the gp vesion
-    call apply_gp_sobel
+    pop rdx ; restore the overwritten regisers that we saved
+    pop rcx ; ...
+    pop rbx ; ...
+    pop rax ; ...
 
     pop rbp
     ret

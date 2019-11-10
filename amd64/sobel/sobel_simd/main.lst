@@ -76,9 +76,9 @@
     76                                 
     77                                 
     78 00000008 4883FA03                cmp rdx, 3
-    79 0000000C 0F8CFE000000            jl clean_and_return
+    79 0000000C 0F8C06010000            jl clean_and_return
     80 00000012 4883F903                cmp rcx, 3
-    81 00000016 0F8CF4000000            jl clean_and_return
+    81 00000016 0F8CFC000000            jl clean_and_return
     82                                 
     83                                 
     84                                 
@@ -118,59 +118,59 @@
    118                                 
    119                                 
    120                                 
-   121 0000006B F20F5CF6                subsd xmm6, xmm6
+   121 0000006B 4989FA                  mov r10, rdi
    122                                 
-   123                                 
-   124 0000006F 4989FA                  mov r10, rdi
-   125                                 
-   126 00000072 C4C17D1032              vmovupd ymm6, [r10]
+   123 0000006E C4C17D1032              vmovupd ymm6, [r10]
+   124                                 
+   125 00000073 4D8D540A10              lea r10, [r10 + 1*rcx + 16]
+   126 00000078 C4C17D103A              vmovupd ymm7, [r10]
    127                                 
-   128 00000077 4D8D540A10              lea r10, [r10 + 1*rcx + 16]
-   129 0000007C C4C17D103A              vmovupd ymm7, [r10]
+   128 0000007D 4D8D540A10              lea r10, [r10 + 1*rcx + 16]
+   129 00000082 C4417D1002              vmovupd ymm8, [r10]
    130                                 
-   131 00000081 4D8D540A10              lea r10, [r10 + 1*rcx + 16]
-   132 00000086 C4417D1002              vmovupd ymm8, [r10]
-   133                                 
-   134                                 
-   135 0000008B C57D28CE                vmovapd ymm9, ymm6
-   136 0000008F C57D28D7                vmovapd ymm10, ymm7
-   137 00000093 C4417D28D8              vmovapd ymm11, ymm8
+   131                                 
+   132 00000087 C57D28CE                vmovapd ymm9, ymm6
+   133 0000008B C57D28D7                vmovapd ymm10, ymm7
+   134 0000008F C4417D28D8              vmovapd ymm11, ymm8
+   135                                 
+   136                                 
+   137                                 
    138                                 
    139                                 
    140                                 
    141                                 
-   142                                 
-   143                                 
-   144                                 
-   145 00000098 C5CD59F0                vmulpd ymm6, ymm0
-   146 0000009C C5C559F9                vmulpd ymm7, ymm1
-   147 000000A0 C53D59C2                vmulpd ymm8, ymm2
-   148                                 
-   149 000000A4 C53559CB                vmulpd ymm9, ymm3
-   150 000000A8 C52D59D4                vmulpd ymm10, ymm4
-   151 000000AC C52559DD                vmulpd ymm11, ymm5
+   142 00000094 C5CD59F0                vmulpd ymm6, ymm0
+   143 00000098 C5C559F9                vmulpd ymm7, ymm1
+   144 0000009C C53D59C2                vmulpd ymm8, ymm2
+   145                                 
+   146 000000A0 C53559CB                vmulpd ymm9, ymm3
+   147 000000A4 C52D59D4                vmulpd ymm10, ymm4
+   148 000000A8 C52559DD                vmulpd ymm11, ymm5
+   149                                 
+   150 000000AC C53D58C6                vaddpd ymm8, ymm6
+   151 000000B0 C53D58C7                vaddpd ymm8, ymm7
    152                                 
-   153 000000B0 C53D58C6                vaddpd ymm8, ymm6
-   154 000000B4 C53D58C7                vaddpd ymm8, ymm7
+   153 000000B4 C4412558D9              vaddpd ymm11, ymm9
+   154 000000B9 C4412558DA              vaddpd ymm11, ymm10
    155                                 
-   156 000000B8 C4412558D9              vaddpd ymm11, ymm9
-   157 000000BD C4412558DA              vaddpd ymm11, ymm10
+   156                                 
+   157                                 
    158                                 
    159                                 
-   160                                 
-   161                                 
+   160 000000BE C4637D39C601            vextracti128 xmm6, ymm8, 1
+   161 000000C4 C4437D39D901            vextracti128 xmm9, ymm11, 1
    162                                 
-   163                                 
-   164                                 
+   163 000000CA 66440F58C6              addpd xmm8, xmm6
+   164 000000CF 66450F58D9              addpd xmm11, xmm9
    165                                 
-   166 000000C2 66440F58C6              addpd xmm8, xmm6
-   167 000000C7 66450F58D9              addpd xmm11, xmm9
+   166 000000D4 C4C3FD00F801            vpermq ymm7, ymm8, 0x01
+   167 000000DA C443FD00D301            vpermq ymm10, ymm11, 0x01
    168                                 
-   169 000000CC C4C3FD00F801            vpermq ymm7, ymm8, 0x01
-   170 000000D2 C443FD00D301            vpermq ymm10, ymm11, 0x01
+   169 000000E0 F2440F58C7              addsd xmm8, xmm7
+   170 000000E5 F2450F58DA              addsd xmm11, xmm10
    171                                 
-   172 000000D8 F2440F58C7              addsd xmm8, xmm7
-   173 000000DD F2450F58DA              addsd xmm11, xmm10
+   172                                 
+   173                                 
    174                                 
    175                                 
    176                                 
@@ -179,69 +179,67 @@
    179                                 
    180                                 
    181                                 
-   182                                 
-   183                                 
+   182 000000EA F2440F1106              movsd [rsi], xmm8
+   183 000000EF F2440F115E08            movsd [rsi+8], xmm11
    184                                 
-   185 000000E2 F2440F1106              movsd [rsi], xmm8
-   186 000000E7 F2440F115E08            movsd [rsi+8], xmm11
+   185 000000F5 4883C710                add rdi, 16
+   186 000000F9 4883C610                add rsi, 16
    187                                 
-   188 000000ED 4883C708                add rdi, 8
-   189 000000F1 4883C608                add rsi, 8
-   190                                 
-   191                                 
-   192 000000F5 4983C108                add r9, 8
-   193 000000F9 4939C9                  cmp r9, rcx
-   194 000000FC 0F8C63FFFFFF            jl inner_loop
-   195                                 
+   188                                 
+   189 000000FD 4983C110                add r9, 16
+   190 00000101 4939C9                  cmp r9, rcx
+   191 00000104 0F8C5BFFFFFF            jl inner_loop
+   192                                 
+   193                                 
+   194 0000010A 4883C710                add rdi, 16
+   195 0000010E 4883C610                add rsi, 16
    196                                 
-   197 00000102 4883C710                add rdi, 16
-   198 00000106 4883C610                add rsi, 16
-   199                                 
-   200                                 
-   201 0000010A 49FFC0                  inc r8
-   202 0000010D 4C39C2                  cmp rdx, r8
-   203 00000110 0F854CFFFFFF            jne outer_loop
-   204                                 
-   205                                  clean_and_return:
-   206                                 
-   207 00000116 4883C448                add rsp, 72
-   208 0000011A 5D                      pop rbp
-   209 0000011B C3                      ret
-   210                                 
+   197                                 
+   198 00000112 49FFC0                  inc r8
+   199 00000115 4C39C2                  cmp rdx, r8
+   200 00000118 0F8544FFFFFF            jne outer_loop
+   201                                 
+   202                                  clean_and_return:
+   203                                 
+   204 0000011E 4883C448                add rsp, 72
+   205 00000122 5D                      pop rbp
+   206 00000123 48C7C001000000          mov rax, 1
+   207 0000012A C3                      ret
+   208                                 
+   209                                 
+   210                                  invalid_image_size:
    211                                 
-   212                                  invalid_image_size:
+   212                                 
    213                                 
-   214                                 
+   214 0000012B EBEF                    jmp clean_and_return
    215                                 
-   216 0000011C EBF6                    jmp clean_and_return
-   217                                 
-   218                                  print_pointer_subroutine:
-   219 0000011E 55                      push rbp
-   220 0000011F 4889E5                  mov rbp, rsp
-   221 00000122 4883EC50                sub rsp, 80
-   222                                 
-   223 00000126 48897C2408              mov [rsp+8], rdi
-   224 0000012B 4889742410              mov [rsp+16], rsi
-   225 00000130 4889542418              mov [rsp+24], rdx
-   226 00000135 48894C2420              mov [rsp+32], rcx
-   227 0000013A 4C89442428              mov [rsp+40], r8
-   228 0000013F 4C894C2430              mov [rsp+48], r9
-   229 00000144 4C89542438              mov [rsp+56], r10
-   230 00000149 4C895C2440              mov [rsp+64], r11
-   231                                 
-   232 0000014E 48C7C7[00000000]        mov rdi, print_pointer
-   233 00000155 488B742408              mov rsi, [rsp+8]
-   234 0000015A E8(F6FFFFFF)            call printf
-   235                                 
-   236 0000015F 488B7C2408              mov rdi, [rsp+8]
-   237 00000164 488B742410              mov rsi, [rsp+16]
-   238 00000169 488B542418              mov rdx, [rsp+24]
-   239 0000016E 488B4C2420              mov rcx, [rsp+32]
-   240 00000173 4C8B442428              mov r8, [rsp+40]
-   241 00000178 4C8B4C2430              mov r9, [rsp+48]
-   242 0000017D 4C8B542438              mov r10, [rsp+56]
-   243 00000182 4C8B5C2440              mov r11, [rsp+64]
-   244                                 
-   245 00000187 4883C450                add rsp, 80
-   246 0000018B 5D                      pop rbp
-   247 0000018C C3                      ret
+   216                                  print_pointer_subroutine:
+   217 0000012D 55                      push rbp
+   218 0000012E 4889E5                  mov rbp, rsp
+   219 00000131 4883EC50                sub rsp, 80
+   220                                 
+   221 00000135 48897C2408              mov [rsp+8], rdi
+   222 0000013A 4889742410              mov [rsp+16], rsi
+   223 0000013F 4889542418              mov [rsp+24], rdx
+   224 00000144 48894C2420              mov [rsp+32], rcx
+   225 00000149 4C89442428              mov [rsp+40], r8
+   226 0000014E 4C894C2430              mov [rsp+48], r9
+   227 00000153 4C89542438              mov [rsp+56], r10
+   228 00000158 4C895C2440              mov [rsp+64], r11
+   229                                 
+   230 0000015D 48C7C7[00000000]        mov rdi, print_pointer
+   231 00000164 488B742408              mov rsi, [rsp+8]
+   232 00000169 E8(F6FFFFFF)            call printf
+   233                                 
+   234 0000016E 488B7C2408              mov rdi, [rsp+8]
+   235 00000173 488B742410              mov rsi, [rsp+16]
+   236 00000178 488B542418              mov rdx, [rsp+24]
+   237 0000017D 488B4C2420              mov rcx, [rsp+32]
+   238 00000182 4C8B442428              mov r8, [rsp+40]
+   239 00000187 4C8B4C2430              mov r9, [rsp+48]
+   240 0000018C 4C8B542438              mov r10, [rsp+56]
+   241 00000191 4C8B5C2440              mov r11, [rsp+64]
+   242                                 
+   243 00000196 4883C450                add rsp, 80
+   244 0000019A 5D                      pop rbp
+   245 0000019B C3                      ret

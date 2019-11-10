@@ -134,7 +134,7 @@
    134 000000E1 F2450F5CFF              subsd xmm15, xmm15
    135                                 
    136 000000E6 F20F103C25[00000000]      movsd xmm7, QWORD [sobel6]
-   137 000000EF F2410F593A              mulsd xmm7, QWORD [r10 + 0]
+   137 000000EF F2410F593A              mulsd xmm7, QWORD [r10]
    138 000000F4 F2440F58F7              addsd xmm14, xmm7
    139                                 
    140 000000F9 F2440F100425[000000-     movsd xmm8, QWORD [sobel7]
@@ -178,15 +178,15 @@
    178                                 
    179 00000164 4883C448                add rsp, 72
    180 00000168 5D                      pop rbp
-   181 00000169 C3                      ret
-   182                                 
+   181 00000169 4831C0                  xor rax, rax
+   182 0000016C C3                      ret
    183                                 
-   184                                  invalid_image_size:
-   185                                 
+   184                                 
+   185                                  invalid_image_size:
    186                                 
    187                                 
-   188 0000016A EBF6                    jmp clean_and_return
-   189                                 
+   188                                 
+   189 0000016D EBF3                    jmp clean_and_return
    190                                 
    191                                 
    192                                 
@@ -194,3 +194,7 @@
    194                                 
    195                                 
    196                                 
+   197                                 
+   198                                 
+   199                                 
+   200                                 

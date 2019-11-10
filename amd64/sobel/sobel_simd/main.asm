@@ -120,13 +120,21 @@ apply_simd_sobel:
     ; ---------------------------------
 
     ; we can now generate partial sums for two adjacent dest elments
-    vmulpd ymm6, ymm0   ; element n, generate top row
-    vmulpd ymm7, ymm1   ; element n, generate middle row
-    vmulpd ymm8, ymm2   ; element n, generate bottom row
+    ;vmulpd ymm6, ymm0   ; element n, generate top row
+    ;vmulpd ymm7, ymm1   ; element n, generate middle row
+    ;vmulpd ymm8, ymm2   ; element n, generate bottom row
 
-    vmulpd ymm9,  ymm3  ; element n+1, generate top row
-    vmulpd ymm10, ymm4  ; element n+1, generate middle row
-    vmulpd ymm11, ymm5  ; element n+1, generate bottom row
+    ;vmulpd ymm9,  ymm3  ; element n+1, generate top row
+    ;vmulpd ymm10, ymm4  ; element n+1, generate middle row
+    ;vmulpd ymm11, ymm5  ; element n+1, generate bottom row
+
+    vmulpd ymm6, [sobelr0]   ; element n, generate top row
+    vmulpd ymm7, [sobelr1]   ; element n, generate middle row
+    vmulpd ymm8, [sobelr2]   ; element n, generate bottom row
+
+    vmulpd ymm9,  [sobelr0_shr]  ; element n+1, generate top row
+    vmulpd ymm10, [sobelr1_shr]  ; element n+1, generate middle row
+    vmulpd ymm11, [sobelr2_shr]  ; element n+1, generate bottom row
 
     vaddpd ymm8, ymm6   ; element n, add bottom and top row
     vaddpd ymm8, ymm7   ; element n, add bottom and middle row
@@ -138,8 +146,8 @@ apply_simd_sobel:
     ; ymm11 contains partial sums for element n+1
 
     ; registers that can be reused: ymm6, ymm7, ymm9, ymm10
-    ;vextracti128 xmm6, ymm8, 1  ; extract upper 128 bits of element n
-    ;vextracti128 xmm9, ymm11, 1 ; extract upper 128 bits of eleent n+1
+    vextracti128 xmm6, ymm8, 1  ; extract upper 128 bits of element n
+    vextracti128 xmm9, ymm11, 1 ; extract upper 128 bits of eleent n+1
 
     addpd xmm8,  xmm6 ; element n,   add lower 128-bits to upper 128-bits
     addpd xmm11, xmm9 ; element n+1, add lower 128-bits to upper 128-bits
@@ -167,7 +175,7 @@ apply_simd_sobel:
     add rsi, 16  ; next destination
 
     ; condition for next x
-    add r9, 8
+    add r9, 16
     cmp r9, rcx
     jl inner_loop
 

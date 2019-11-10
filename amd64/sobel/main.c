@@ -7,9 +7,10 @@
 //  1 : algorithm attempted to perform SIMDx4 execution but was
 //      unable to due to unavailable processor support
 int sobel(double* src, double* dest, int h, int w, int flag);
+void init_sobel(void);
 
-//void apply_gp_sobel(double* src, double* dest, int h, int w);
-//void apply_simd_sobel(double* src, double* dest, int h, int w);
+//int apply_gp_sobel(double* src, double* dest, int h, int w);
+int apply_simd_sobel(double* src, double* dest, int h, int w);
 
 #define ARR_SIZE 16
 int h = 4;
@@ -58,15 +59,18 @@ void print_result(int i) {
             puts("\tSOBEL_GENERAL_PURPOSE");
             break;
         case SOBEL_SIMD_OFFSET_1:
-            puts("SOBEL_SIMD_OFFSET_1");
+            puts("\tSOBEL_SIMD_OFFSET_1");
             break;
         default:
-            puts("Erroneous Sobel result");
+            puts("\tErroneous Sobel result");
             exit(1);
     }
 }
 
 int main(int argc, char* argv[]) {
+
+    // asm routine builds up LUT for different ways of solving
+    init_sobel();
 
     int iters = 0;
     unsigned long int start_time, total_time;
