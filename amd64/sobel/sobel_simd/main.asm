@@ -61,11 +61,6 @@ apply_simd_sobel:
     cmp rcx, 3
     jl clean_and_return
 
-    ;push rdi
-    ;mov rdi, sobelr0
-    ;call print_pointer_subroutine
-    ;pop rdi
-
     ; now the actual calculation can begin
     ; first subtract 2 from each dimension
     sub rdx, 2 ; img h
@@ -114,27 +109,19 @@ apply_simd_sobel:
     vmovapd ymm10, ymm7
     vmovapd ymm11, ymm8
 
-    ; ---------------------------------
+    ; ----------------------------------------
     ; element n   = [ ymm6 ; ymm7  ; ymm8  ]
     ; element n+1 = [ ymm9 ; ymm10 ; ymm11 ]
-    ; ---------------------------------
+    ; ----------------------------------------
 
     ; we can now generate partial sums for two adjacent dest elments
-    ;vmulpd ymm6, ymm0   ; element n, generate top row
-    ;vmulpd ymm7, ymm1   ; element n, generate middle row
-    ;vmulpd ymm8, ymm2   ; element n, generate bottom row
+    vmulpd ymm6, ymm0   ; element n, generate top row
+    vmulpd ymm7, ymm1   ; element n, generate middle row
+    vmulpd ymm8, ymm2   ; element n, generate bottom row
 
-    ;vmulpd ymm9,  ymm3  ; element n+1, generate top row
-    ;vmulpd ymm10, ymm4  ; element n+1, generate middle row
-    ;vmulpd ymm11, ymm5  ; element n+1, generate bottom row
-
-    vmulpd ymm6, [sobelr0]   ; element n, generate top row
-    vmulpd ymm7, [sobelr1]   ; element n, generate middle row
-    vmulpd ymm8, [sobelr2]   ; element n, generate bottom row
-
-    vmulpd ymm9,  [sobelr0_shr]  ; element n+1, generate top row
-    vmulpd ymm10, [sobelr1_shr]  ; element n+1, generate middle row
-    vmulpd ymm11, [sobelr2_shr]  ; element n+1, generate bottom row
+    vmulpd ymm9,  ymm3  ; element n+1, generate top row
+    vmulpd ymm10, ymm4  ; element n+1, generate middle row
+    vmulpd ymm11, ymm5  ; element n+1, generate bottom row
 
     vaddpd ymm8, ymm6   ; element n, add bottom and top row
     vaddpd ymm8, ymm7   ; element n, add bottom and middle row
@@ -157,16 +144,6 @@ apply_simd_sobel:
 
     addsd xmm8,  xmm7   ; element n,   add final partial sums
     addsd xmm11, xmm10  ; element n+1, add final partial sums
-
-    ; ymm3 now contains all partial sums
-    ;vmovupd [rsp], ymm3        ; store the full 256-bit chunk into memory
-    ;movupd  xmm4, [rsp+16]     ; load the upper half into seperate register
-    ;movsd   xmm5, [rsp+8]      ; load the upper half of the lower chunk
-    ;addpd   xmm3, xmm4         ; this only works because we dont care about the most significant number
-    ;addsd   xmm3, xmm5         ; add the last partial sum
-
-    ; store data in destination array, xmm0 is the total sum for this window
-    ;movsd [rsi], xmm3
 
     movsd [rsi],   xmm8
     movsd [rsi+8], xmm11

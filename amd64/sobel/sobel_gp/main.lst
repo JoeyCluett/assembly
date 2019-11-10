@@ -57,9 +57,9 @@
     57                                 
     58                                 
     59 00000008 4883FA03                cmp rdx, 3
-    60 0000000C 0F8C4C010000            jl clean_and_return
+    60 0000000C 0F8C40010000            jl clean_and_return
     61 00000012 4883F903                cmp rcx, 3
-    62 00000016 0F8C42010000            jl clean_and_return
+    62 00000016 0F8C36010000            jl clean_and_return
     63                                 
     64                                 
     65                                 
@@ -68,125 +68,125 @@
     68 00000024 48C1E103                shl rcx, 3
     69                                 
     70                                 
-    71 00000028 4801CE                  add rsi, rcx
-    72 0000002B 4883C618                add rsi, 24
-    73                                 
-    74 0000002F 4D31C0                  xor r8, r8
-    75                                 
-    76                                 
-    77                                  outer_loop:
-    78                                 
-    79 00000032 4D31C9                  xor r9, r9
-    80                                 
-    81                                  inner_loop:
+    71 00000028 F20F100425[00000000]      movsd xmm0, [sobel0]
+    72 00000031 F20F100C25[00000000]      movsd xmm1, [sobel1]
+    73 0000003A F20F101425[00000000]      movsd xmm2, [sobel2]
+    74 00000043 F20F101C25[00000000]      movsd xmm3, [sobel3]
+    75 0000004C F20F102425[00000000]      movsd xmm4, [sobel4]
+    76 00000055 F20F102C25[00000000]      movsd xmm5, [sobel5]
+    77 0000005E F20F103425[00000000]      movsd xmm6, [sobel6]
+    78 00000067 F20F103C25[00000000]      movsd xmm7, [sobel7]
+    79 00000070 F2440F100425[000000-     movsd xmm8, [sobel8]
+    80 00000070 00]                
+    81                                 
     82                                 
-    83                                 
-    84                                 
+    83 0000007A 4801CE                  add rsi, rcx
+    84 0000007D 4883C618                add rsi, 24
     85                                 
-    86                                 
+    86 00000081 4D31C0                  xor r8, r8
     87                                 
-    88 00000035 F20F5CC0                subsd xmm0, xmm0
-    89                                 
+    88                                 
+    89                                  outer_loop:
     90                                 
-    91 00000039 4989FA                  mov r10, rdi
+    91 00000084 4D31C9                  xor r9, r9
     92                                 
-    93 0000003C F2450F5CD2              subsd xmm10, xmm10
-    94 00000041 F2450F5CDB              subsd xmm11, xmm11
+    93                                  inner_loop:
+    94                                 
     95                                 
-    96 00000046 F20F100C25[00000000]      movsd xmm1, QWORD [sobel0]
-    97 0000004F F2410F590A              mulsd xmm1, QWORD [r10 + 0]
-    98 00000054 F2440F58D1              addsd xmm10, xmm1
+    96                                 
+    97                                 
+    98                                 
     99                                 
-   100 00000059 F20F101425[00000000]      movsd xmm2, QWORD [sobel1]
-   101 00000062 F2410F595208            mulsd xmm2, QWORD [r10 + 8]
-   102 00000068 F2440F58DA              addsd xmm11, xmm2
-   103                                 
-   104 0000006D F20F101C25[00000000]      movsd xmm3, QWORD [sobel2]
-   105 00000076 F2410F595A10            mulsd xmm3, QWORD [r10 + 16]
-   106 0000007C F20F58C3                addsd xmm0, xmm3
+   100 00000087 F2450F5CFF              subsd xmm15, xmm15
+   101                                 
+   102                                 
+   103 0000008C 4989FA                  mov r10, rdi
+   104                                 
+   105 0000008F F2450F100A              movsd xmm9, QWORD [r10]
+   106 00000094 F2440F59C8              mulsd xmm9, xmm0
    107                                 
-   108 00000080 F2450F58D3              addsd xmm10, xmm11
-   109                                 
-   110 00000085 4901CA                  add r10, rcx
-   111 00000088 4983C210                add r10, 16
-   112                                 
-   113 0000008C F2450F5CE4              subsd xmm12, xmm12
-   114 00000091 F2450F5CED              subsd xmm13, xmm13
-   115                                 
-   116 00000096 F20F102425[00000000]      movsd xmm4, QWORD [sobel3]
-   117 0000009F F2410F5922              mulsd xmm4, QWORD [r10 + 0]
-   118 000000A4 F2440F58E4              addsd xmm12, xmm4
-   119                                 
-   120 000000A9 F20F102C25[00000000]      movsd xmm5, QWORD [sobel4]
-   121 000000B2 F2410F596A08            mulsd xmm5, QWORD [r10 + 8]
-   122 000000B8 F2440F58ED              addsd xmm13, xmm5
+   108 00000099 F2450F105208            movsd xmm10, QWORD [r10 + 8]
+   109 0000009F F2440F59D1              mulsd xmm10, xmm1
+   110                                 
+   111 000000A4 F2450F105A10            movsd xmm11, QWORD [r10 + 16]
+   112 000000AA F2440F59DA              mulsd xmm11, xmm2
+   113                                 
+   114 000000AF F2450F58CA              addsd xmm9, xmm10
+   115 000000B4 F2450F58CB              addsd xmm9, xmm11
+   116 000000B9 F2450F58F9              addsd xmm15, xmm9
+   117                                 
+   118 000000BE 4901CA                  add r10, rcx
+   119 000000C1 4983C210                add r10, 16
+   120                                 
+   121 000000C5 F2450F1022              movsd xmm12, QWORD [r10]
+   122 000000CA F2440F59E3              mulsd xmm12, xmm3
    123                                 
-   124 000000BD F20F103425[00000000]      movsd xmm6, QWORD [sobel5]
-   125 000000C6 F2410F597210            mulsd xmm6, QWORD [r10 + 16]
-   126 000000CC F20F58C6                addsd xmm0, xmm6
-   127                                 
-   128 000000D0 F2450F58E5              addsd xmm12, xmm13
+   124 000000CF F2450F106A08            movsd xmm13, QWORD [r10 + 8]
+   125 000000D5 F2440F59EC              mulsd xmm13, xmm4
+   126                                 
+   127 000000DA F2450F107210            movsd xmm14, QWORD [r10 + 16]
+   128 000000E0 F2440F59F5              mulsd xmm14, xmm5
    129                                 
-   130 000000D5 4901CA                  add r10, rcx
-   131 000000D8 4983C210                add r10, 16
-   132                                 
-   133 000000DC F2450F5CF6              subsd xmm14, xmm14
-   134 000000E1 F2450F5CFF              subsd xmm15, xmm15
-   135                                 
-   136 000000E6 F20F103C25[00000000]      movsd xmm7, QWORD [sobel6]
-   137 000000EF F2410F593A              mulsd xmm7, QWORD [r10]
-   138 000000F4 F2440F58F7              addsd xmm14, xmm7
+   130 000000E5 F2450F58E5              addsd xmm12, xmm13
+   131 000000EA F2450F58E6              addsd xmm12, xmm14
+   132 000000EF F2450F58FC              addsd xmm15, xmm12
+   133                                 
+   134 000000F4 4901CA                  add r10, rcx
+   135 000000F7 4983C210                add r10, 16
+   136                                 
+   137 000000FB F2450F100A              movsd xmm9, QWORD [r10]
+   138 00000100 F2440F59CE              mulsd xmm9, xmm6
    139                                 
-   140 000000F9 F2440F100425[000000-     movsd xmm8, QWORD [sobel7]
-   141 000000F9 00]                
-   142 00000103 F2450F594208            mulsd xmm8, QWORD [r10 + 8]
-   143 00000109 F2450F58F8              addsd xmm15, xmm8
-   144                                 
-   145 0000010E F2440F100C25[000000-     movsd xmm9, QWORD [sobel8]
-   146 0000010E 00]                
-   147 00000118 F2450F594A10            mulsd xmm9, QWORD [r10 + 16]
-   148 0000011E F2410F58C1              addsd xmm0, xmm9
+   140 00000105 F2450F105208            movsd xmm10, QWORD [r10 + 8]
+   141 0000010B F2440F59D7              mulsd xmm10, xmm7
+   142                                 
+   143 00000110 F2450F105A10            movsd xmm11, QWORD [r10 + 16]
+   144 00000116 F2450F59D8              mulsd xmm11, xmm8
+   145                                 
+   146 0000011B F2450F58CA              addsd xmm9, xmm10
+   147 00000120 F2450F58CB              addsd xmm9, xmm11
+   148 00000125 F2450F58F9              addsd xmm15, xmm9
    149                                 
-   150 00000123 F2450F58F7              addsd xmm14, xmm15
+   150                                 
    151                                 
    152                                 
-   153 00000128 F2410F58C2              addsd xmm0, xmm10
-   154 0000012D F2450F58E6              addsd xmm12, xmm14
-   155 00000132 F2410F58C4              addsd xmm0, xmm12
-   156                                 
+   153                                 
+   154                                 
+   155                                 
+   156 0000012A F2440F113E              movsd [rsi], xmm15
    157                                 
-   158 00000137 F20F1106                movsd [rsi], xmm0
-   159                                 
-   160 0000013B 4883C708                add rdi, 8
-   161 0000013F 4883C608                add rsi, 8
-   162                                 
-   163                                 
-   164 00000143 4983C108                add r9, 8
-   165 00000147 4939C9                  cmp r9, rcx
-   166 0000014A 0F8CDFFEFFFF            jl inner_loop
-   167                                 
-   168                                 
-   169 00000150 4883C710                add rdi, 16
-   170 00000154 4883C610                add rsi, 16
-   171                                 
-   172                                 
-   173 00000158 49FFC0                  inc r8
-   174 0000015B 4C39C2                  cmp rdx, r8
-   175 0000015E 0F85C8FEFFFF            jne outer_loop
+   158 0000012F 4883C708                add rdi, 8
+   159 00000133 4883C608                add rsi, 8
+   160                                 
+   161                                 
+   162 00000137 4983C108                add r9, 8
+   163 0000013B 4939C9                  cmp r9, rcx
+   164 0000013E 0F8C3DFFFFFF            jl inner_loop
+   165                                 
+   166                                 
+   167 00000144 4883C710                add rdi, 16
+   168 00000148 4883C610                add rsi, 16
+   169                                 
+   170                                 
+   171 0000014C 49FFC0                  inc r8
+   172 0000014F 4C39C2                  cmp rdx, r8
+   173 00000152 0F8526FFFFFF            jne outer_loop
+   174                                 
+   175                                  clean_and_return:
    176                                 
-   177                                  clean_and_return:
-   178                                 
-   179 00000164 4883C448                add rsp, 72
-   180 00000168 5D                      pop rbp
-   181 00000169 4831C0                  xor rax, rax
-   182 0000016C C3                      ret
-   183                                 
+   177 00000158 4883C448                add rsp, 72
+   178 0000015C 5D                      pop rbp
+   179 0000015D 4831C0                  xor rax, rax
+   180 00000160 C3                      ret
+   181                                 
+   182                                 
+   183                                  invalid_image_size:
    184                                 
-   185                                  invalid_image_size:
+   185                                 
    186                                 
-   187                                 
+   187 00000161 EBF3                    jmp clean_and_return
    188                                 
-   189 0000016D EBF3                    jmp clean_and_return
+   189                                 
    190                                 
    191                                 
    192                                 
@@ -196,5 +196,3 @@
    196                                 
    197                                 
    198                                 
-   199                                 
-   200                                 

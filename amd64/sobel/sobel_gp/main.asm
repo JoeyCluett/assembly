@@ -66,6 +66,17 @@ apply_gp_sobel:
     sub rcx, 2 ; img w
     shl rcx, 3 ; rcx is now the width of each row in bytes
 
+    ; load all of the coefficients into registers
+    movsd xmm0, [sobel0]
+    movsd xmm1, [sobel1]
+    movsd xmm2, [sobel2]
+    movsd xmm3, [sobel3]
+    movsd xmm4, [sobel4]
+    movsd xmm5, [sobel5]
+    movsd xmm6, [sobel6]
+    movsd xmm7, [sobel7]
+    movsd xmm8, [sobel8]
+
     ; now modify rsi such that it points to the first destination space
     add rsi, rcx
     add rsi, 24
@@ -84,75 +95,52 @@ apply_gp_sobel:
     ; ========================================
 
     ; the cumulative sum is generated across all 16 of the xmmN registers
-    subsd xmm0, xmm0
+    subsd xmm15, xmm15
 
     ; preserve the global window pointer
     mov r10, rdi    ; modify a copy of the current window pointer
 
-    subsd xmm10, xmm10
-    subsd xmm11, xmm11
+    movsd xmm9,  QWORD [r10]
+    movsd xmm10, QWORD [r10 + 8]
+    movsd xmm11, QWORD [r10 + 16]
+    mulsd xmm9, xmm0
+    mulsd xmm10, xmm1
+    mulsd xmm11, xmm2
 
-    movsd xmm1, QWORD [sobel0]
-    mulsd xmm1, QWORD [r10 + 0]
-    addsd xmm10, xmm1
-
-    movsd xmm2, QWORD [sobel1]
-    mulsd xmm2, QWORD [r10 + 8]
-    addsd xmm11, xmm2
-
-    movsd xmm3, QWORD [sobel2]
-    mulsd xmm3, QWORD [r10 + 16]
-    addsd xmm0, xmm3
-
-    addsd xmm10, xmm11
-
+    addsd xmm9, xmm10
+    addsd xmm9, xmm11
+    addsd xmm15, xmm9
+    
     add r10, rcx  ; jump to the next row in the src array
     add r10, 16
 
-    subsd xmm12, xmm12
-    subsd xmm13, xmm13
-
-    movsd xmm4, QWORD [sobel3]
-    mulsd xmm4, QWORD [r10 + 0]
-    addsd xmm12, xmm4
-
-    movsd xmm5, QWORD [sobel4]
-    mulsd xmm5, QWORD [r10 + 8]
-    addsd xmm13, xmm5
-
-    movsd xmm6, QWORD [sobel5]
-    mulsd xmm6, QWORD [r10 + 16]
-    addsd xmm0, xmm6
+    movsd xmm12, QWORD [r10]
+    movsd xmm13, QWORD [r10 + 8]
+    movsd xmm14, QWORD [r10 + 16]
+    mulsd xmm12, xmm3
+    mulsd xmm13, xmm4
+    mulsd xmm14, xmm5
 
     addsd xmm12, xmm13
+    addsd xmm12, xmm14
+    addsd xmm15, xmm12
 
     add r10, rcx   ; jump to the next row in the src array
     add r10, 16
 
-    subsd xmm14, xmm14
-    subsd xmm15, xmm15
+    movsd xmm9,  QWORD [r10]
+    movsd xmm10, QWORD [r10 + 8]
+    movsd xmm11, QWORD [r10 + 16]
+    mulsd xmm9, xmm6
+    mulsd xmm10, xmm7
+    mulsd xmm11, xmm8
 
-    movsd xmm7, QWORD [sobel6]
-    mulsd xmm7, QWORD [r10]
-    addsd xmm14, xmm7
-
-    movsd xmm8, QWORD [sobel7]
-    mulsd xmm8, QWORD [r10 + 8]
-    addsd xmm15, xmm8
-
-    movsd xmm9, QWORD [sobel8]
-    mulsd xmm9, QWORD [r10 + 16]
-    addsd xmm0, xmm9
-
-    addsd xmm14, xmm15
-
-    ; xmm0 = xmm0 + xmm10 + xmm12 + xmm14
-    addsd xmm0, xmm10
-    addsd xmm12, xmm14
-    addsd xmm0, xmm12
+    addsd xmm9,  xmm10
+    addsd xmm9,  xmm11
+    addsd xmm15, xmm9
 
     ; store data in destination register, xmm0 is the total sum for this window
-    movsd [rsi], xmm0
+    movsd [rsi], xmm15
 
     add rdi, 8  ; next window start
     add rsi, 8  ; next destination
