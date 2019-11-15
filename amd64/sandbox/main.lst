@@ -1,19 +1,30 @@
      1                                 %line 1+1 main.asm
-     2                                 
+     2                                 [global message]
      3                                 
-     4                                 
-     5                                 
-     6                                 
+     4                                 [section .data]
+     5 00000000 48656C6C6F20576F72-     message: db "Hello World", 0xA, 0x0
+     6 00000000 6C640A00           
      7                                 
-     8                                 
+     8                                 [section .text]
      9                                 
-    10                                 
-    11                                 
-    12                                 [segment .text]
-    13                                 [global _start]
+    10 00000000 55                      push rbp
+    11 00000001 4889E5                  mov rbp, rsp
+    12                                 
+    13 00000004 48C7C0[00000000]        mov rax, message
     14                                 
-    15                                 _start:
-    16 00000000 B801000000              mov eax, 1
-    17 00000005 BB05000000              mov ebx, 5
-    18 0000000A CD80                    int 0x80
-    19                                 
+    15 0000000B 50                      push rax
+    16 0000000C 53                      push rbx
+    17 0000000D 51                      push rcx
+    18 0000000E 52                      push rdx
+    19 0000000F 56                      push rsi
+    20 00000010 57                      push rdi
+    21 00000011 55                      push rbp
+    22 00000012 54                      push rsp
+    23 00000013 4150                    push r8
+    24 00000015 4151                    push r9
+    25 00000017 4152                    push r10
+    26 00000019 4153                    push r11
+    27 0000001B 4154                    push r12
+    28 0000001D 4155                    push r13
+    29 0000001F 4156                    push r14
+    30 00000021 4157                    push r15

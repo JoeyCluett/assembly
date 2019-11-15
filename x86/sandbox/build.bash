@@ -12,5 +12,4 @@ done
 
 #nasm -f elf -g -F stabs newsandbox.asm -l newsandbox.lst
 nasm -f elf -g -F dwarf newsandbox.asm -l newsandbox.lst
-ld -m elf_i386 -s -o newsandbox newsandbox.o
-
+#ld -m elf_i386 -s -o newsandbox newsandbox.o

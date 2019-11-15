@@ -1,18 +1,28 @@
-;
-; Program: exit syscall
-;
-; executes the exit system call
-;
-; no input
-;
-; outputs the exit status
-;
+global message
 
-segment .text
-global _start
+section .data
+    message: db "Hello World", 0xA, 0x0
 
-_start:
-    mov eax, 1  ; sysexit
-    mov ebx, 5  ; status value to return
-    int 0x80    ; software interrupt
+section .text
 
+    push rbp
+    mov rbp, rsp
+
+    mov rax, message
+
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push rbp
+    push rsp
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
